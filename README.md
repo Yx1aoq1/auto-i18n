@@ -1,4 +1,4 @@
-## vue-auto-i18n
+## auto-i18n
 
 可以在vue/angular项目中使用，将vue中的template部分或者js/ts中的中文替换为vue-i18n的$t('xxx')，并生成对应的js/ts/json格式的文件。
 
