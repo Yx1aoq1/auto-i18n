@@ -62,7 +62,6 @@ export function codeReplace(origin, tokens, callback) {
   tokens.forEach((token) => {
     code = splice(code, token.start + offset, token.end + offset, callback(token))
     offset = code.length - origin.length
-    // console.log('code', code)
   })
   return code
 }

@@ -7,7 +7,7 @@ import { AvailableParsers } from './parsers'
 const Config = getConfig()
 export class Global {
   // 可处理的文件拓展名
-  static enableTransExts = ['vue', 'js', 'html', 'ts']
+  static enableTransExts = ['vue', 'js', 'html', 'ts', 'jsx', 'tsx']
   // 默认导出对应的语言
   static sourceLanguage = Config.sourceLanguage || 'zh-cn'
   // 读取locales配置时对应的拓展名
