@@ -4,12 +4,12 @@ import { getExtname, codeReplace } from './utils/common'
 import { parseHTML } from './utils/parseHTML'
 import { isChineseChar } from './utils/common'
 import { parseTemplate } from './utils/parseTemplate'
+import { parseScript } from './utils/parseScript'
 import { cloneDeep } from 'lodash'
 import { parse } from '@vue/compiler-sfc'
 import { Global } from './global'
 import { exportFile } from './utils/fs'
 import compile from './utils/sfcDescriptorStringify'
-import { parseToAST, findChineseText, replaceChineseText } from './utils/babelParser'
 
 export class Translator {
   static async create() {
@@ -68,22 +68,6 @@ export class Translator {
     return tokens
   }
 
-  /**
-   * 解析 JavaScript/TypeScript 代码
-   * @param {string} code
-   * @param {string} type 文件类型
-   * @returns {Array} tokens
-   */
-  parseScript(code, type) {
-    try {
-      const ast = parseToAST(code, type)
-      return findChineseText(ast)
-    } catch (error) {
-      logger.error('解析代码失败:', error)
-      return []
-    }
-  }
-
   parse(filepath) {
     const extname = getExtname(filepath)
     const code = fs.readFileSync(filepath, 'utf-8')
@@ -106,7 +90,7 @@ export class Translator {
           extname,
           originSfcDescriptor,
           sfcDescriptor,
-          tokens: [this.parseHTML(template), this.parseScript(script, 'js')]
+          tokens: [this.parseHTML(template), parseScript(script, 'js')]
         }
       case 'js':
       case 'jsx':
@@ -114,9 +98,8 @@ export class Translator {
       case 'tsx':
         return {
           extname,
-          tokens: this.parseScript(code, extname),
-          origin: code,
-          ast: parseToAST(code, extname)
+          tokens: parseScript(code, extname),
+          origin: code
         }
       default:
         return
@@ -124,89 +107,73 @@ export class Translator {
   }
 
   translate(filepath, namespace, replace = false) {
-    try {
-      const parseResult = this.parse(filepath)
-      if (!parseResult) return
+    const parseResult = this.parse(filepath)
+    if (!parseResult) return
 
-      const { extname, tokens, origin, originSfcDescriptor, sfcDescriptor, ast } = parseResult
-      const _self = this
+    const { extname, tokens, origin, originSfcDescriptor, sfcDescriptor, ast } = parseResult
+    const _self = this
 
-      function handleToken(token, type = '') {
-        try {
-          let value
-          const params = (token.params || []).map((item) => ({
-            name: item.name,
-            value: item.expression && item.expression
-          }))
+    function handleToken(token, type = '') {
+      let value
 
-          switch (token.type) {
-            case 'chars':
-              value = codeReplace(token.text, token.tokens, (t) => handleToken(t, t.type))
-              break
-            case 'attribute':
-              value = codeReplace(token.value, token.tokens, (t) => handleToken(t, 'attribute'))
-              if (type === 'vueTemplate') {
-                value = `${token.name[0] === ':' ? '' : ':'}${token.name}="${value}"`
-              }
-              if (type === 'html' && Global.translateMode === 'angular') {
-                value = `${token.name[0] === '[' ? token.name : `[${token.name}]`}="${value}"`
-              }
-              break
-            case 'string':
-            case 'text':
-            case 'template':
-            case 'jsx':
-              value = _self.stringToIdentifier(token.text, namespace, params, type)
-              break
+      const params = (token.params || []).map((item) => ({
+        name: item.name,
+        value: item.expression && item.expression
+      }))
+
+      switch (token.type) {
+        case 'chars':
+          value = codeReplace(token.text, token.tokens, (t) => handleToken(t, t.type))
+          break
+        case 'attribute':
+          value = codeReplace(token.value, token.tokens, (t) => handleToken(t, 'attribute'))
+          if (type === 'vueTemplate') {
+            value = `${token.name[0] === ':' ? '' : ':'}${token.name}="${value}"`
           }
-          return value
-        } catch (error) {
-          console.error('处理 token 失败:', error, token)
-          // 失败时返回原始文本，确保不中断流程
-          return token.text || token.value || ''
-        }
+          if (type === 'html' && Global.translateMode === 'angular') {
+            value = `${token.name[0] === '[' ? token.name : `[${token.name}]`}="${value}"`
+          }
+          break
+        case 'string':
+        case 'text':
+        case 'template':
+          value = _self.stringToIdentifier(token.text, namespace, params, type)
+          break
       }
-
-      let newCode
-      try {
-        switch (extname) {
-          case 'html':
-            newCode = codeReplace(origin, tokens, (t) => handleToken(t, 'html'))
-            break
-          case 'vue':
-            sfcDescriptor.template.content = codeReplace(sfcDescriptor.template.content, tokens[0], (t) => handleToken(t, 'vueTemplate'))
-            if (sfcDescriptor.script) {
-              sfcDescriptor.script.content = codeReplace(sfcDescriptor.script.content, tokens[1], (t) => handleToken(t, 'vueScript'))
-            }
-            if (sfcDescriptor.scriptSetup) {
-              sfcDescriptor.scriptSetup.content = codeReplace(sfcDescriptor.scriptSetup.content, tokens[1], (t) => handleToken(t, 'script'))
-            }
-            newCode = compile(sfcDescriptor)
-            break
-          case 'js':
-          case 'jsx':
-          case 'ts':
-          case 'tsx':
-            newCode = replaceChineseText(ast, (token) => handleToken(token, extname))
-            break
-          default:
-            return
-        }
-
-        replace && exportFile(filepath, newCode, { flag: 'w' })
-      } catch (error) {
-        logger.error('生成代码失败:', error)
-        // 如果处理失败，记录错误但不抛出异常
-      }
-    } catch (error) {
-      logger.error('翻译文件失败:', error, filepath)
-      // 失败时不抛出异常，确保程序继续运行
+      return value
     }
+
+    let newCode
+    switch (extname) {
+      case 'html':
+        newCode = codeReplace(origin, tokens, (t) => handleToken(t, 'html'))
+        break
+      case 'vue':
+        sfcDescriptor.template.content = codeReplace(sfcDescriptor.template.content, tokens[0], (t) => handleToken(t, 'vueTemplate'))
+        if (sfcDescriptor.script) {
+          sfcDescriptor.script.content = codeReplace(sfcDescriptor.script.content, tokens[1], (t) => handleToken(t, 'vueScript'))
+        }
+        if (sfcDescriptor.scriptSetup) {
+          sfcDescriptor.scriptSetup.content = codeReplace(sfcDescriptor.scriptSetup.content, tokens[1], (t) => handleToken(t, 'script'))
+        }
+        newCode = compile(sfcDescriptor)
+        break
+      case 'js':
+      case 'jsx':
+      case 'ts':
+      case 'tsx':
+        newCode = codeReplace(origin, tokens, (token) => handleToken(token, extname))
+        break
+      default:
+        return
+    }
+
+    replace && exportFile(filepath, newCode, { flag: 'w' })
   }
 
   stringToIdentifier(text, namespace, params, type) {
     const localeKey = this.localeLoader.findMatchLocaleKey(text, namespace)
-    logger.info(`[auto-i18n] `, `replace: ${text} --> ${localeKey}`)
+    logger.info(`replace: ${text} --> ${localeKey}`)
 
     // 处理参数，保持原始表达式
     const param = params
@@ -245,7 +212,6 @@ export class Translator {
     }
     if (type === 'jsx' || type === 'tsx' || type === 'script') {
       // 对于 JSX/TSX，直接返回翻译函数调用，不需要额外的花括号
-      // 因为在 babelParser.js 中会使用 JSXExpressionContainer 包装
       return translation
     }
 
