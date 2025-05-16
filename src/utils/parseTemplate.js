@@ -17,7 +17,7 @@ const MATCH_KEYWORD = {
   '/**': '*/'
 }
 
-export function parseTemplate(template) {
+export function parseTemplate(template, offset = 0) {
   const scanner = new Scanner(template)
   const tokens = []
   const keywordStack = []
@@ -53,23 +53,18 @@ export function parseTemplate(template) {
     if (keyword === '{{' && isChineseChar(words)) {
       matchChinese(words, pos - words.length)
     }
-    if (
-      !ignore &&
-      ['\r\n', '\n', '\r'].includes(keyword) &&
-      isChineseChar(words) &&
-      keywordStack.every((item) => item.keyword !== '`')
-    ) {
+    if (!ignore && ['\r\n', '\n', '\r'].includes(keyword) && isChineseChar(words) && keywordStack.every((item) => item.keyword !== '`')) {
       matchChinese(words, pos - words.length)
     }
     matched = matchPairKeyword(keyword, pos)
     if (matched && !ignore) {
       const token = template.slice(matched.pos + matched.keyword.length, pos)
-      const end = scanner.pos + keyword.length // 引号匹配时，引号包裹的部分是需要检验的目标
+      const end = offset + scanner.pos + keyword.length // 引号匹配时，引号包裹的部分是需要检验的目标
       if (["'", '"'].includes(matched.keyword) && isChineseChar(token) && !isExp) {
         tokens.push({
           type: 'string',
           text: token,
-          start: matched.pos,
+          start: offset + matched.pos,
           end
         })
       } // ES6模板语法匹配
@@ -77,15 +72,15 @@ export function parseTemplate(template) {
         if (isChineseChar(token)) {
           const paramsTokens = params.map((item) => {
             return {
-              start: item.start - matched.pos - 1,
-              end: item.end - matched.pos - 1,
+              start: offset + item.start - matched.pos - 1,
+              end: offset + item.end - matched.pos - 1,
               name: `{${item.name}}`
             }
           })
           tokens.push({
             type: params.length ? 'template' : 'string',
             text: codeReplace(token, paramsTokens, (item) => item.name),
-            start: matched.pos,
+            start: offset + matched.pos,
             end,
             params,
             origin: token
@@ -100,7 +95,7 @@ export function parseTemplate(template) {
         params.push({
           name,
           expression: value,
-          start: matched.pos,
+          start: offset + matched.pos,
           end,
           tokens: isSimple ? [] : parseTemplate(value)
         })
@@ -124,12 +119,12 @@ export function parseTemplate(template) {
     const zhMatch = string.match(chinese)
     while (zhMatch && zhMatch.length) {
       const char = zhMatch.shift()
-      start = start + string.indexOf(char)
+      start = offset + start + string.indexOf(char)
       tokens.push({
         type: 'text',
         text: char,
         start,
-        end: start + char.length
+        end: offset + start + char.length
       })
     }
   }
@@ -147,10 +142,7 @@ export function parseTemplate(template) {
     }
     const last = keywordStack[len - 1]
     const lastKeyMatch = MATCH_KEYWORD[last.keyword]
-    if (
-      (typeof lastKeyMatch === 'string' && lastKeyMatch !== keyword) ||
-      (Array.isArray(lastKeyMatch) && !lastKeyMatch.includes(keyword))
-    ) {
+    if ((typeof lastKeyMatch === 'string' && lastKeyMatch !== keyword) || (Array.isArray(lastKeyMatch) && !lastKeyMatch.includes(keyword))) {
       if (!keyMatch) return
       keywordStack.push({
         keyword,

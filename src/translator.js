@@ -1,10 +1,7 @@
 import fs from 'fs'
 import { LocaleLoader } from './localeLoader'
 import { getExtname, codeReplace } from './utils/common'
-import { parseHTML } from './utils/parseHTML'
-import { isChineseChar } from './utils/common'
-import { parseTemplate } from './utils/parseTemplate'
-import { parseScript } from './utils/parseScript'
+import { parseScript, parseHTML } from './utils/parseScript'
 import { cloneDeep } from 'lodash'
 import { parse } from '@vue/compiler-sfc'
 import { Global } from './global'
@@ -30,44 +27,6 @@ export class Translator {
     return code.includes('i18nIgnore')
   }
 
-  /**
-   * 解析html
-   * @param {*} html
-   * @returns
-   */
-  parseHTML(html) {
-    const tokens = []
-    parseHTML(html, {
-      expectHTML: true,
-      shouldKeepComment: false,
-      start(tag, attrs, unary, start, end) {
-        if (attrs && attrs.length) {
-          attrs.map((attr) => {
-            if (isChineseChar(attr.value)) {
-              tokens.push({
-                type: 'attribute',
-                ...attr,
-                tokens: parseTemplate(attr.value)
-              })
-            }
-          })
-        }
-      },
-      chars(text, start, end) {
-        if (isChineseChar(text)) {
-          tokens.push({
-            type: 'chars',
-            text,
-            start,
-            end,
-            tokens: parseTemplate(text)
-          })
-        }
-      }
-    })
-    return tokens
-  }
-
   parse(filepath) {
     const extname = getExtname(filepath)
     const code = fs.readFileSync(filepath, 'utf-8')
@@ -77,7 +36,7 @@ export class Translator {
       case 'html':
         return {
           extname,
-          tokens: this.parseHTML(code),
+          tokens: parseHTML(code),
           origin: code
         }
       case 'vue':
@@ -90,7 +49,7 @@ export class Translator {
           extname,
           originSfcDescriptor,
           sfcDescriptor,
-          tokens: [this.parseHTML(template), parseScript(script, 'js')]
+          tokens: [parseHTML(template), parseScript(script, 'js')]
         }
       case 'js':
       case 'jsx':
