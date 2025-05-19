@@ -21,53 +21,31 @@ const MATCH_KEYWORD = {
 
 export function parseTemplate(template, offset = 0) {
   const scanner = new Scanner(template)
+  // 返回结果
   const tokens = []
+  // 匹配的关键字栈
   const keywordStack = []
-  let words
-  let keyword
-  let pos
-  let matched
-  let isExp = false
   let idx = 0
+  let words
+  // 关键字
+  let keyword
+  // 扫描所在位置
+  let pos
+  // 关键字匹配
+  let matched
+  // 是模版语法中的变量关键字
+  let isExp = false
+  // 模版字符所带的参数列表
   let params = []
-  let ignore = false // 查找关键字
+  // 是否时注释，需要忽略跳过的文字
+  let ignore = false
+  // 匹配中文起始点
+  let chineseStart = 0
+  // 查找关键字
   words = scanner.scanUtil(KEYWORD)
   // 没有查询到任何关键字或者关键字前包含中文，都按全段文字为中文处理
   if (!scanner.keyword || (isChineseChar(words) && !['{{', '{'].includes(scanner.keyword))) {
     matchChinese(template, offset)
-    return tokens
-  }
-  // 如果在中文中匹配到模版语法的内容，需要特殊匹配
-  if (isChineseChar(words) && ['{{', '{'].includes(scanner.keyword)) {
-    const matches = Array.from(template.matchAll(variable), (m) => {
-      const token = m[1]
-      const isSimple = vname.test(token.trim())
-      const name = isSimple ? token : `value${idx++}`
-      const value = isSimple ? null : token.trim()
-      const start = offset + template.indexOf(m[0])
-      return {
-        name,
-        expression: value,
-        start,
-        end: start + m[0].length,
-        tokens: isSimple ? [] : parseTemplate(value)
-      }
-    })
-    const paramsTokens = matches.map((item) => {
-      return {
-        start: item.start,
-        end: item.end,
-        name: getParamTemplate(item.name)
-      }
-    })
-    tokens.push({
-      type: 'text',
-      text: codeReplace(template, paramsTokens, (item) => item.name).trim(),
-      start: offset,
-      end: offset + template.length,
-      params: matches,
-      origin: template
-    })
     return tokens
   }
   // 遍历字符串
@@ -77,55 +55,68 @@ export function parseTemplate(template, offset = 0) {
     // 如果关键字前一个字符为转义符，则不是需要找的关键字，继续向后查询
     if (words.slice(-1) === '\\') {
       scanner.scan()
-      scanner.scanUtil(KEYWORD)
+      words = scanner.scanUtil(KEYWORD)
       continue
     }
+    matched = matchPairKeyword(keyword, pos)
     // 需要忽略注释及console.log的中文
     if (['//', '/**'].includes(keyword) || (keyword === '(' && words.includes('console.log'))) {
       ignore = true
+      scanner.scan()
+      words = scanner.scanUtil(KEYWORD)
+      continue
     }
-    if (keyword === '${') {
-      isExp = true
+    if (ignore) {
+      ignore = !(matched && [')', '*/', '\r\n', '\n', '\r'].includes(keyword))
+      scanner.scan()
+      words = scanner.scanUtil(KEYWORD)
+      continue
     }
-    if (!ignore && !isExp && isChineseChar(words) && keywordStack.every((item) => item.keyword !== '`')) {
-      matchChinese(words, pos - words.length)
-    }
-    matched = matchPairKeyword(keyword, pos)
-    if (matched && !ignore) {
-      const token = template.slice(matched.pos + matched.keyword.length, pos)
-      const end = offset + scanner.pos + keyword.length
-      // 引号匹配时，引号包裹的部分是需要检验的目标
-      if (["'", '"'].includes(matched.keyword) && isChineseChar(token) && !isExp) {
-        tokens.push({
-          type: 'string',
-          text: token,
-          start: offset + matched.pos,
-          end
-        })
+    // 当匹配到中文，开始处理
+    if (isChineseChar(words)) {
+      if (['${', '{', '{{'].includes(keyword)) {
+        isExp = true
       }
-      // ES6模板语法匹配
-      if (keyword === '`' && !isExp) {
-        if (isChineseChar(token)) {
-          const paramsTokens = params.map((item) => {
-            return {
-              start: item.start - matched.pos - 1,
-              end: item.end - matched.pos - 1,
-              name: getParamTemplate(item.name)
-            }
-          })
+      // 如果不是模版语法的关键字可以直接匹配
+      if (!isExp && keywordStack.every((item) => item.keyword !== '`')) {
+        matchChinese(words, pos - words.length)
+      }
+    }
+    if (matched) {
+      const matchText = template.slice(matched.pos + matched.keyword.length, pos)
+      const end = scanner.pos + keyword.length
+      if (isChineseChar(matchText) && !isExp) {
+        // 一个纯粹的字符串包含中文
+        if (["'", '"', '`'].includes(matched.keyword) && !params.length) {
           tokens.push({
-            type: params.length ? 'template' : 'string',
-            text: codeReplace(token, paramsTokens, (item) => item.name),
+            type: 'string',
+            text: token,
             start: offset + matched.pos,
-            end,
+            end: offset + end
+          })
+        }
+        // ES6模版语法匹配
+        if (keyword === '`' && params.length) {
+          const text = codeReplace(matchText, params, (item) => getParamTemplate(item.name))
+          tokens.push({
+            type: 'template',
+            text,
+            start: offset + matched.pos,
+            end: offset + end,
             params,
             origin: token
           })
+          params = []
         }
-        params = []
       }
       // ES6模板语法中的参数匹配
-      if (keyword === '}' && matched.keyword === '${') {
+      /* prettier-ignore */
+      if (
+        (keyword === '}' && matched.keyword === '${') ||
+        // 保证{}包裹的非注释的部分
+        (!token.includes('/**') && keyword === '}' && matched.keyword === '{') ||
+        (keyword === '}}' && matched.keyword === '{{')
+      ) {
         const isSimple = vname.test(token.trim())
         const name = isSimple ? token : `value${idx++}`
         const value = isSimple ? null : token.trim()
@@ -133,16 +124,11 @@ export function parseTemplate(template, offset = 0) {
           name,
           expression: value,
           start: matched.pos,
-          end: end - offset,
+          end,
           tokens: isSimple ? [] : parseTemplate(value)
         })
+        isExp = false
       }
-    }
-    if (matched && [')', '*/', '\r\n', '\n', '\r'].includes(keyword)) {
-      ignore = false
-    }
-    if (keywordStack.every((item) => item.keyword !== '${')) {
-      isExp = false
     }
     scanner.scan()
     words = scanner.scanUtil(KEYWORD)
@@ -180,10 +166,7 @@ export function parseTemplate(template, offset = 0) {
     }
     const last = keywordStack[len - 1]
     const lastKeyMatch = MATCH_KEYWORD[last.keyword]
-    if (
-      (typeof lastKeyMatch === 'string' && lastKeyMatch !== keyword) ||
-      (Array.isArray(lastKeyMatch) && !lastKeyMatch.includes(keyword))
-    ) {
+    if ((typeof lastKeyMatch === 'string' && lastKeyMatch !== keyword) || (Array.isArray(lastKeyMatch) && !lastKeyMatch.includes(keyword))) {
       if (!keyMatch) return
       keywordStack.push({
         keyword,
