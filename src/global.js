@@ -43,6 +43,9 @@ export class Global {
   }
   // 导出格式 Can be flat({"a.b.c": "..."}) or nested({"a": {"b": {"c": "..."}}})
   static keystyle = Config.keystyle || 'nested'
-
+  // 参数模板格式，expression 表示中间要替换的参数名称，例如： {{expression}} / ${expression}
   static paramTemplate = Config.paramTemplate || '{expression}'
+  // 命名空间风格，如大写驼峰/小写驼峰等，会自动转换
+  // camelCase|capitalCase|constantCase|dotCase|kebabCase|noCase|pascalCase|pascalSnakeCase|pathCase|sentenceCase|snakeCase|trainCase
+  static namespaceStyle = Config.namespaceStyle
 }

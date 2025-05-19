@@ -1,3 +1,5 @@
+import * as changeCase from 'change-case'
+
 export function getExtname(path) {
   return path.slice(((path.lastIndexOf('.') - 1) >>> 0) + 2)
 }
@@ -64,4 +66,11 @@ export function codeReplace(origin, tokens, callback) {
     offset = code.length - origin.length
   })
   return code
+}
+
+export function transformCase(str, method) {
+  if (method) {
+    return changeCase[method](str)
+  }
+  return str
 }
