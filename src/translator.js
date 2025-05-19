@@ -86,6 +86,9 @@ export class Translator {
           break
         case 'attribute':
           value = codeReplace(token.value, token.tokens, (t) => handleToken(t, 'attribute'))
+          if (['jsx', 'tsx'].includes(type)) {
+            value = `${token.name}="{${value}}"`
+          }
           if (type === 'vueTemplate') {
             value = `${token.name[0] === ':' ? '' : ':'}${token.name}="${value}"`
           }
@@ -96,7 +99,7 @@ export class Translator {
         case 'string':
         case 'text':
         case 'template':
-          value = _self.stringToIdentifier(token.text, namespace, params, type)
+          value = _self.stringToIdentifier(token.text, namespace, params, type, extname)
           break
       }
       return value
@@ -130,7 +133,7 @@ export class Translator {
     replace && exportFile(filepath, newCode, { flag: 'w' })
   }
 
-  stringToIdentifier(text, namespace, params, type) {
+  stringToIdentifier(text, namespace, params, type, extname) {
     const localeKey = this.localeLoader.findMatchLocaleKey(text, namespace)
     logger.info(`replace: ${text} --> ${localeKey}`)
 
@@ -163,15 +166,14 @@ export class Translator {
     const translation = buildTranslation(localeKey, param)
 
     // 根据不同环境包装表达式
-    if (type === 'vueTemplate' || type === 'text' || type === 'chars') {
+    if (['jsx', 'tsx'].includes(extname) && type === 'text') {
+      return `{${translation}}`
+    }
+    if (type === 'vueTemplate' || type === 'text') {
       return `{{ ${translation} }}`
     }
     if (type === 'vueScript') {
       return `this.${translation}`
-    }
-    if (type === 'jsx' || type === 'tsx' || type === 'script') {
-      // 对于 JSX/TSX，直接返回翻译函数调用，不需要额外的花括号
-      return translation
     }
 
     return translation

@@ -63,12 +63,25 @@ export function parseScript(code, type) {
   traverse(ast, {
     StringLiteral(path) {
       if (isChineseChar(path.node.value)) {
-        tokens.push({
-          type: 'string',
-          text: path.node.value,
-          start: path.node.start,
-          end: path.node.end
-        })
+        // Check if this string is part of a JSX attribute
+        const isJSXAttribute = path.parent && ['JSXAttribute', 'ObjectProperty'].includes(path.parent.type)
+        if (isJSXAttribute) {
+          tokens.push({
+            type: 'attribute',
+            name: path.parent.type === 'JSXAttribute' ? path.parent.name.name : path.parent.key.name,
+            start: path.parent.start,
+            end: path.parent.end,
+            value: path.node.value,
+            tokens: parseTemplate(path.node.value)
+          })
+        } else {
+          tokens.push({
+            type: 'string',
+            text: path.node.value,
+            start: path.node.start,
+            end: path.node.end
+          })
+        }
       }
     },
     TemplateLiteral(path) {
