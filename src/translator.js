@@ -87,7 +87,7 @@ export class Translator {
         case 'attribute':
           value = codeReplace(token.value, token.tokens, (t) => handleToken(t, 'attribute'))
           if (['jsx', 'tsx'].includes(type)) {
-            value = `${token.name}="{${value}}"`
+            value = `${token.name}={${value}}`
           }
           if (type === 'vueTemplate') {
             value = `${token.name[0] === ':' ? '' : ':'}${token.name}="${value}"`
