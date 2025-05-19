@@ -3,6 +3,7 @@ import { isChineseChar, codeReplace } from './common'
 
 const chinese = /\S*[^\x00-\xff]+\S*/g
 const vname = /^[a-zA-Z\$_][a-zA-Z\d_]*$/
+const variable = /\{\{?([^{}]+)\}?\}/g
 // 需要查找的关键字
 const KEYWORD = ["'", '`', '{{', '}}', '${', '{', '}', '"', '(', ')', '//', '/**', '*/', '\r\n', '\n', '\r']
 const MATCH_KEYWORD = {
@@ -29,11 +30,46 @@ export function parseTemplate(template, offset = 0) {
   let idx = 0
   let params = []
   let ignore = false // 查找关键字
-  words = scanner.scanUtil(KEYWORD) // 没有查询到任何关键字或者关键字前包含中文，都按全段文字为中文处理
-  if (!scanner.keyword || (isChineseChar(words) && scanner.keyword !== '{{')) {
-    matchChinese(template, 0)
+  words = scanner.scanUtil(KEYWORD)
+  // 没有查询到任何关键字或者关键字前包含中文，都按全段文字为中文处理
+  if (!scanner.keyword || (isChineseChar(words) && !['{{', '{'].includes(scanner.keyword))) {
+    matchChinese(template, offset)
     return tokens
-  } // 遍历字符串
+  }
+  // 如果在中文中匹配到模版语法的内容，需要特殊匹配
+  if (isChineseChar(words) && ['{{', '{'].includes(scanner.keyword)) {
+    const matches = Array.from(template.matchAll(variable), (m) => {
+      const token = m[1]
+      const isSimple = vname.test(token.trim())
+      const name = isSimple ? token : `value${idx++}`
+      const value = isSimple ? null : token.trim()
+      const start = offset + template.indexOf(m[0])
+      return {
+        name,
+        expression: value,
+        start,
+        end: start + m[0].length,
+        tokens: isSimple ? [] : parseTemplate(value)
+      }
+    })
+    const paramsTokens = matches.map((item) => {
+      return {
+        start: item.start,
+        end: item.end,
+        name: `{${item.name}}`
+      }
+    })
+    tokens.push({
+      type: 'text',
+      text: codeReplace(template, paramsTokens, (item) => item.name).trim(),
+      start: offset,
+      end: offset + template.length,
+      params: matches,
+      origin: template
+    })
+    return tokens
+  }
+  // 遍历字符串
   while (!scanner.eos()) {
     pos = scanner.pos
     keyword = scanner.keyword
@@ -50,16 +86,14 @@ export function parseTemplate(template, offset = 0) {
     if (keyword === '${') {
       isExp = true
     }
-    if (keyword === '{{' && isChineseChar(words)) {
-      matchChinese(words, pos - words.length)
-    }
-    if (!ignore && ['\r\n', '\n', '\r'].includes(keyword) && isChineseChar(words) && keywordStack.every((item) => item.keyword !== '`')) {
+    if (!ignore && !isExp && isChineseChar(words) && keywordStack.every((item) => item.keyword !== '`')) {
       matchChinese(words, pos - words.length)
     }
     matched = matchPairKeyword(keyword, pos)
     if (matched && !ignore) {
       const token = template.slice(matched.pos + matched.keyword.length, pos)
-      const end = offset + scanner.pos + keyword.length // 引号匹配时，引号包裹的部分是需要检验的目标
+      const end = offset + scanner.pos + keyword.length
+      // 引号匹配时，引号包裹的部分是需要检验的目标
       if (["'", '"'].includes(matched.keyword) && isChineseChar(token) && !isExp) {
         tokens.push({
           type: 'string',
@@ -67,13 +101,14 @@ export function parseTemplate(template, offset = 0) {
           start: offset + matched.pos,
           end
         })
-      } // ES6模板语法匹配
+      }
+      // ES6模板语法匹配
       if (keyword === '`' && !isExp) {
         if (isChineseChar(token)) {
           const paramsTokens = params.map((item) => {
             return {
-              start: offset + item.start - matched.pos - 1,
-              end: offset + item.end - matched.pos - 1,
+              start: item.start - matched.pos - 1,
+              end: item.end - matched.pos - 1,
               name: `{${item.name}}`
             }
           })
@@ -87,7 +122,8 @@ export function parseTemplate(template, offset = 0) {
           })
         }
         params = []
-      } // ES6模板语法中的参数匹配
+      }
+      // ES6模板语法中的参数匹配
       if (keyword === '}' && matched.keyword === '${') {
         const isSimple = vname.test(token.trim())
         const name = isSimple ? token : `value${idx++}`
@@ -109,7 +145,8 @@ export function parseTemplate(template, offset = 0) {
     }
     scanner.scan()
     words = scanner.scanUtil(KEYWORD)
-  } // 匹配完之后有剩余的字符串也需要校验是否存在中文
+  }
+  // 匹配完之后有剩余的字符串也需要校验是否存在中文
   if (words && isChineseChar(words)) {
     matchChinese(words, scanner.pos - words.length)
   }
