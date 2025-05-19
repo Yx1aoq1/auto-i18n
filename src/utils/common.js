@@ -69,7 +69,7 @@ export function codeReplace(origin, tokens, callback) {
 }
 
 export function transformCase(str, method) {
-  if (method) {
+  if (method && str) {
     return changeCase[method](str)
   }
   return str
