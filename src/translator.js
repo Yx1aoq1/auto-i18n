@@ -69,7 +69,7 @@ export class Translator {
     const parseResult = this.parse(filepath)
     if (!parseResult) return
 
-    const { extname, tokens, origin, originSfcDescriptor, sfcDescriptor, ast } = parseResult
+    const { extname, tokens, origin, sfcDescriptor } = parseResult
     const _self = this
 
     function handleToken(token, type = '') {

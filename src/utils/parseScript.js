@@ -63,6 +63,7 @@ export function parseScript(code, type) {
   let matchEnd = 0
   traverse(ast, {
     StringLiteral(path) {
+      if (matchEnd > path.node.start) return
       if (isChineseChar(path.node.value)) {
         // Check if this string is part of a JSX attribute
         const isJSXAttribute = path.parent && path.parent.type === 'JSXAttribute'
@@ -86,6 +87,7 @@ export function parseScript(code, type) {
       }
     },
     TemplateLiteral(path) {
+      if (matchEnd > path.node.start) return
       const hasChineseText = path.node.quasis.some((quasi) => {
         return isChineseChar(quasi.value.raw)
       })

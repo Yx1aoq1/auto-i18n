@@ -62,6 +62,8 @@ export function codeReplace(origin, tokens, callback) {
   let code = origin
   let offset = 0
   tokens.forEach((token) => {
+    const o = origin.slice(token.start, token.end)
+    console.log('test:', o, o.length)
     code = splice(code, token.start + offset, token.end + offset, callback(token))
     offset = code.length - origin.length
   })
