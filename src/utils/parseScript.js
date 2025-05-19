@@ -60,6 +60,7 @@ function parseToAST(code, type) {
 export function parseScript(code, type) {
   const ast = parseToAST(code, type)
   const tokens = []
+  let matchEnd = 0
   traverse(ast, {
     StringLiteral(path) {
       if (isChineseChar(path.node.value)) {
@@ -97,6 +98,8 @@ export function parseScript(code, type) {
       // 检查相邻的 JSX 表达式
       let text = path.node.value.trim()
       if (!text || !isChineseChar(text)) return
+      if (matchEnd > path.parent.start) return
+      matchEnd = path.parent.end
       const template = generate(path.parent).code
       const offset = path.parent.start
       tokens.push(...parseHTML(template, offset))

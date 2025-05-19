@@ -44,6 +44,8 @@ const Example: React.FC = () => {
       <div>带换行的文字</div>
       {/* 中文 + 变量 */}
       <div> 中文+变量显示：{value} </div>
+      {/* 变量空格隔开 */}
+      {flag && <div className={value}>会员将于 {value} 天后到期</div>}
       {/* 变量 + 中文 */}
       <div>
         {value}
