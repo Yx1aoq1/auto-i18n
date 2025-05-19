@@ -1,5 +1,6 @@
 import { Scanner } from './scanner'
 import { isChineseChar, codeReplace } from './common'
+import { Global } from '../global'
 
 const chinese = /\S*[^\x00-\xff]+\S*/g
 const vname = /^[a-zA-Z\$_][a-zA-Z\d_]*$/
@@ -56,7 +57,7 @@ export function parseTemplate(template, offset = 0) {
       return {
         start: item.start,
         end: item.end,
-        name: `{${item.name}}`
+        name: getParamTemplate(item.name)
       }
     })
     tokens.push({
@@ -109,7 +110,7 @@ export function parseTemplate(template, offset = 0) {
             return {
               start: item.start - matched.pos - 1,
               end: item.end - matched.pos - 1,
-              name: `{${item.name}}`
+              name: getParamTemplate(item.name)
             }
           })
           tokens.push({
@@ -179,7 +180,10 @@ export function parseTemplate(template, offset = 0) {
     }
     const last = keywordStack[len - 1]
     const lastKeyMatch = MATCH_KEYWORD[last.keyword]
-    if ((typeof lastKeyMatch === 'string' && lastKeyMatch !== keyword) || (Array.isArray(lastKeyMatch) && !lastKeyMatch.includes(keyword))) {
+    if (
+      (typeof lastKeyMatch === 'string' && lastKeyMatch !== keyword) ||
+      (Array.isArray(lastKeyMatch) && !lastKeyMatch.includes(keyword))
+    ) {
       if (!keyMatch) return
       keywordStack.push({
         keyword,
@@ -189,5 +193,10 @@ export function parseTemplate(template, offset = 0) {
     } else {
       return keywordStack.pop()
     }
+  }
+
+  // 获取参数模板格式
+  function getParamTemplate(name) {
+    return Global.paramTemplate.replace('expression', name)
   }
 }

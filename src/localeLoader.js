@@ -197,7 +197,11 @@ export class LocaleLoader {
     const file = first(this.files)
     const dirpath = file.dirpath
     const ext = getExtname(file.filepath)
-    const relativePath = Global.pathMatcher.replace('{locale}', locale).replace('{namespace}', namespace).replace('{namespaces}', namespace).replace('{ext}', ext)
+    const relativePath = Global.pathMatcher
+      .replace('{locale}', locale)
+      .replace('{namespace}', namespace)
+      .replace('{namespaces}', namespace)
+      .replace('{ext}', ext)
     const result = this.getFileInfo(dirpath, relativePath)
     if (!result) return
     const { fullpath: filepath, matcher } = result

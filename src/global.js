@@ -43,4 +43,6 @@ export class Global {
   }
   // 导出格式 Can be flat({"a.b.c": "..."}) or nested({"a": {"b": {"c": "..."}}})
   static keystyle = Config.keystyle || 'nested'
+
+  static paramTemplate = Config.paramTemplate || '{expression}'
 }
