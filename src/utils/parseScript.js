@@ -64,11 +64,11 @@ export function parseScript(code, type) {
     StringLiteral(path) {
       if (isChineseChar(path.node.value)) {
         // Check if this string is part of a JSX attribute
-        const isJSXAttribute = path.parent && ['JSXAttribute', 'ObjectProperty'].includes(path.parent.type)
+        const isJSXAttribute = path.parent && path.parent.type === 'JSXAttribute'
         if (isJSXAttribute) {
           tokens.push({
             type: 'attribute',
-            name: path.parent.type === 'JSXAttribute' ? path.parent.name.name : path.parent.key.name,
+            name: path.parent.name.name,
             start: path.parent.start,
             end: path.parent.end,
             value: path.node.value,
