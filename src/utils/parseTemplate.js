@@ -131,8 +131,8 @@ export function parseTemplate(template, offset = 0) {
         params.push({
           name,
           expression: value,
-          start: offset + matched.pos,
-          end,
+          start: matched.pos,
+          end: end - offset,
           tokens: isSimple ? [] : parseTemplate(value)
         })
       }
