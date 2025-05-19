@@ -152,6 +152,9 @@ export class Translator {
       const translationKey = `'${key}'`
       const translationParams = parameters ? `, {${parameters}}` : ''
 
+      if (Global.translateMode === 'react') {
+        return `t(${translationKey}${translationParams})`
+      }
       if (Global.translateMode === 'vue') {
         return `$t(${translationKey}${translationParams})`
       }
