@@ -6,7 +6,11 @@ import React from 'react'
 
 const SimpleTest: React.FC = () => {
   // 测试 JSX 中的中文文本，包括复杂的嵌套表达式
-  return <div>中文包裹着变量 {value} 哈哈哈哈哈</div>
+  return (
+    <div>
+      点击空白区域导入{mediaTypeText}，或直接把文件{multiple ? '夹' : ''}拖到此处
+    </div>
+  )
 }
 
 export default SimpleTest

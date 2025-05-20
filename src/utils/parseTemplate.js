@@ -205,11 +205,16 @@ export function parseTemplate(template, offset = 0) {
     const mergedStart = Math.min(...combined.map((item) => item.start))
     const mergedEnd = Math.max(...combined.map((item) => item.end))
     const mergedText = template.slice(mergedStart - offset, mergedEnd + 1 - offset)
+    const text = codeReplace(
+      mergedText,
+      params.map((p) => ({ ...p, start: p.start - mergedStart, end: p.end - mergedStart })),
+      (item) => getParamTemplate(item.name)
+    )
     // 删除原来tokens中的内容
     tokens.splice(0, tokens.length)
     tokens.push({
       type: 'text',
-      text: codeReplace(mergedText, params, (item) => getParamTemplate(item.name)),
+      text,
       start: mergedStart,
       end: mergedEnd,
       params,
