@@ -47,8 +47,8 @@ export function makeMap(str, expectsLowerCase) {
  * @param {*} replace
  * @returns
  */
-export function splice(soure, start, end, replace) {
-  return soure.slice(0, start) + replace + soure.slice(end)
+export function splice(source, start, end, replace) {
+  return source.slice(0, start) + replace + source.slice(end + 1)
 }
 
 /**
@@ -62,8 +62,6 @@ export function codeReplace(origin, tokens, callback) {
   let code = origin
   let offset = 0
   tokens.forEach((token) => {
-    const o = origin.slice(token.start, token.end)
-    console.log('test:', o, o.length)
     code = splice(code, token.start + offset, token.end + offset, callback(token))
     offset = code.length - origin.length
   })

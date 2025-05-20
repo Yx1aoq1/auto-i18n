@@ -75,34 +75,40 @@ export function parseTemplate(template, offset = 0) {
       words = scanner.scanUtil(KEYWORD)
       continue
     }
+    if (['${', '{', '{{'].includes(keyword)) {
+      isExp = true
+    }
     if (['}', '}}'].includes(keyword)) {
       isExp = false
     }
-
     if (matched) {
-      const matchText = template.slice(matched.pos + matched.keyword.length, pos)
-      console.log('🚀 ~ matchText:', matchText)
-      const start = matched.pos - matched.keyword.length + 1
-      const end = pos
-      if (isChineseChar(matchText)) {
+      const matchStart = matched.pos + matched.keyword.length
+      const matchEnd = pos - keyword.length
+      // 截取关键字直接的文案内容
+      const matchText = template.slice(matchStart, matchEnd + 1)
+      const originStart = matched.pos
+      const originEnd = pos
+      // 包含关键字的原始文案内容
+      const originText = template.slice(originStart, originEnd + 1)
+      if (isChineseChar(originText)) {
         // 一个纯粹的字符串包含中文
         if (["'", '"', '`'].includes(matched.keyword) && !params.length) {
           tokens.push({
             type: 'string',
             text: matchText,
-            start: offset + start,
-            end: offset + end
+            start: offset + matchStart,
+            end: offset + matchEnd
           })
         }
         // ES6模版语法匹配
         if (keyword === '`' && params.length) {
           tokens.push({
             type: 'template',
-            text: codeReplace(matchText, params, (item) => getParamTemplate(item.name)),
-            start: offset + start,
-            end: offset + end,
+            text: codeReplace(originText, params, (item) => getParamTemplate(item.name)).slice(1, originText.length),
+            start: offset + originStart,
+            end: offset + originEnd,
             params,
-            origin: matchText
+            origin: originText
           })
           params = []
         }
@@ -121,24 +127,19 @@ export function parseTemplate(template, offset = 0) {
         params.push({
           name,
           expression: value,
-          start,
-          end,
+          start: originStart,
+          end: originEnd,
           tokens: isSimple ? [] : parseTemplate(value),
-          origin: matched.keyword + matchText + keyword
+          origin: originText
         })
       }
-    } else {
-      /* prettier-ignore */
-      if (
-        !isExp &&
-        isChineseChar(words) &&
-        keywordStack.every((item) => item.keyword !== '`') && keyword !== '`'
-      ) {
-        matchChinese(words, pos - words.length)
-      }
     }
-    if (['${', '{', '{{'].includes(keyword)) {
-      isExp = true
+    if (
+      isChineseChar(words) &&
+      keywordStack.every((item) => item.keyword !== '`') &&
+      !["'", '"', '`'].includes(keyword)
+    ) {
+      matchChinese(words, pos - words.length)
     }
     scanner.scan()
     words = scanner.scanUtil(KEYWORD)
@@ -150,15 +151,12 @@ export function parseTemplate(template, offset = 0) {
   // 如果存在模板匹配，则重新计算tokens
   if (params.length && canMerged) {
     // 合并token和params方便计算最小start和最大end
-    /* prettier-ignore */
-    const combined = [
-      ...tokens,
-      ...params.map((p) => ({ ...p, start: offset + p.start, end: offset + p.end }))
-    ]
+    const combined = [...tokens, ...params.map((p) => ({ ...p, start: offset + p.start, end: offset + p.end }))]
     // 计算 start 和 end 范围
     const mergedStart = Math.min(...combined.map((item) => item.start))
     const mergedEnd = Math.max(...combined.map((item) => item.end))
-    const mergedText = template.slice(mergedStart - offset, mergedEnd - offset)
+    const mergedText = template.slice(mergedStart - offset, mergedEnd + 1 - offset)
+    console.log('🚀 ~ template:', template.length)
     // 删除原来tokens中的内容
     tokens.splice(0, tokens.length)
     tokens.push({
@@ -176,12 +174,12 @@ export function parseTemplate(template, offset = 0) {
     const zhMatch = string.match(chinese)
     while (zhMatch && zhMatch.length) {
       const char = zhMatch.shift()
-      start = offset + start + string.indexOf(char)
+      start = start + string.indexOf(char)
       tokens.push({
         type: 'text',
         text: char,
-        start,
-        end: offset + start + char.length
+        start: offset + start,
+        end: offset + start + char.length - 1
       })
     }
   }
@@ -199,7 +197,10 @@ export function parseTemplate(template, offset = 0) {
     }
     const last = keywordStack[len - 1]
     const lastKeyMatch = MATCH_KEYWORD[last.keyword]
-    if ((typeof lastKeyMatch === 'string' && lastKeyMatch !== keyword) || (Array.isArray(lastKeyMatch) && !lastKeyMatch.includes(keyword))) {
+    if (
+      (typeof lastKeyMatch === 'string' && lastKeyMatch !== keyword) ||
+      (Array.isArray(lastKeyMatch) && !lastKeyMatch.includes(keyword))
+    ) {
       if (!keyMatch) return
       keywordStack.push({
         keyword,

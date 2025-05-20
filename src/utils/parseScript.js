@@ -34,7 +34,7 @@ export function parseHTML(html, offset = 0) {
           type: 'chars',
           text,
           start: offset + start,
-          end: offset + end,
+          end: offset + end - 1,
           tokens: parseTemplate(text)
         })
       }
