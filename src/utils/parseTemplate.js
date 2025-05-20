@@ -39,8 +39,8 @@ export function parseTemplate(template, offset = 0) {
   let params = []
   // 是否时注释，需要忽略跳过的文字
   let ignore = false
-  // 是否可以合并为一整串替换字符（带换行的不合并）
-  let canMerged = true
+  // 已合并的token所在的idx
+  let mergedIdx = -1
   // 查找关键字
   words = scanner.scanUtil(KEYWORD)
   // 没有查询到任何关键字或者关键字前包含中文，都按全段文字为中文处理
@@ -52,9 +52,6 @@ export function parseTemplate(template, offset = 0) {
   while (!scanner.eos()) {
     pos = scanner.pos
     keyword = scanner.keyword
-    if (['\r\n', '\n', '\r'].includes(keyword)) {
-      canMerged = false
-    }
     // 如果关键字前一个字符为转义符，则不是需要找的关键字，继续向后查询
     if (words.slice(-1) === '\\') {
       scanner.scan()
@@ -96,8 +93,9 @@ export function parseTemplate(template, offset = 0) {
           tokens.push({
             type: 'string',
             text: matchText,
-            start: offset + matchStart,
-            end: offset + matchEnd
+            start: offset + originStart,
+            end: offset + originEnd,
+            origin: originText
           })
         }
         // ES6模版语法匹配
@@ -118,7 +116,7 @@ export function parseTemplate(template, offset = 0) {
       if (
         (keyword === '}' && matched.keyword === '${') ||
         // 保证{}包裹的非注释的部分
-        (!matchText.includes('/**') && keyword === '}' && matched.keyword === '{') ||
+        (!matchText.includes('/*') && keyword === '}' && matched.keyword === '{') ||
         (keyword === '}}' && matched.keyword === '{{')
       ) {
         const isSimple = vname.test(matchText.trim())
@@ -141,6 +139,9 @@ export function parseTemplate(template, offset = 0) {
     ) {
       matchChinese(words, pos - words.length)
     }
+    if (['\r\n', '\n', '\r'].includes(keyword)) {
+      mergeTokens()
+    }
     scanner.scan()
     words = scanner.scanUtil(KEYWORD)
   }
@@ -148,28 +149,11 @@ export function parseTemplate(template, offset = 0) {
   if (words && isChineseChar(words)) {
     matchChinese(words, scanner.pos - words.length)
   }
-  // 如果存在模板匹配，则重新计算tokens
-  if (params.length && canMerged) {
-    // 合并token和params方便计算最小start和最大end
-    const combined = [...tokens, ...params.map((p) => ({ ...p, start: offset + p.start, end: offset + p.end }))]
-    // 计算 start 和 end 范围
-    const mergedStart = Math.min(...combined.map((item) => item.start))
-    const mergedEnd = Math.max(...combined.map((item) => item.end))
-    const mergedText = template.slice(mergedStart - offset, mergedEnd + 1 - offset)
-    console.log('🚀 ~ template:', template.length)
-    // 删除原来tokens中的内容
-    tokens.splice(0, tokens.length)
-    tokens.push({
-      type: 'text',
-      text: codeReplace(mergedText, params, (item) => getParamTemplate(item.name)),
-      start: mergedStart,
-      end: mergedEnd,
-      params,
-      origin: mergedText
-    })
-  }
+  // 对剩余的内容进行合并
+  mergeTokens()
   return tokens
 
+  // 匹配中文
   function matchChinese(string, start) {
     const zhMatch = string.match(chinese)
     while (zhMatch && zhMatch.length) {
@@ -183,7 +167,7 @@ export function parseTemplate(template, offset = 0) {
       })
     }
   }
-
+  // 匹配
   function matchPairKeyword(keyword, pos) {
     const keyMatch = MATCH_KEYWORD[keyword]
     const len = keywordStack.length
@@ -210,6 +194,30 @@ export function parseTemplate(template, offset = 0) {
     } else {
       return keywordStack.pop()
     }
+  }
+
+  function mergeTokens() {
+    if (!tokens.length || !params.length) return
+    if (!tokens.some((item, idx) => item.type === 'text' && idx > mergedIdx)) return
+    // 合并token和params方便计算最小start和最大end
+    const combined = [...tokens, ...params.map((p) => ({ ...p, start: offset + p.start, end: offset + p.end }))]
+    // 计算 start 和 end 范围
+    const mergedStart = Math.min(...combined.map((item) => item.start))
+    const mergedEnd = Math.max(...combined.map((item) => item.end))
+    const mergedText = template.slice(mergedStart - offset, mergedEnd + 1 - offset)
+    // 删除原来tokens中的内容
+    tokens.splice(0, tokens.length)
+    tokens.push({
+      type: 'text',
+      text: codeReplace(mergedText, params, (item) => getParamTemplate(item.name)),
+      start: mergedStart,
+      end: mergedEnd,
+      params,
+      origin: mergedText
+    })
+    mergedIdx = tokens.length - 1
+    // 清空原来params里的内容
+    params = []
   }
 
   // 获取参数模板格式

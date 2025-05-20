@@ -77,7 +77,7 @@ export class Translator {
 
       const params = (token.params || []).map((item) => ({
         name: item.name,
-        value: item.expression && item.expression
+        value: item.expression && codeReplace(item.expression, item.tokens, (t) => handleToken(t, 'template'))
       }))
 
       switch (token.type) {
@@ -111,12 +111,18 @@ export class Translator {
         newCode = codeReplace(origin, tokens, (t) => handleToken(t, 'html'))
         break
       case 'vue':
-        sfcDescriptor.template.content = codeReplace(sfcDescriptor.template.content, tokens[0], (t) => handleToken(t, 'vueTemplate'))
+        sfcDescriptor.template.content = codeReplace(sfcDescriptor.template.content, tokens[0], (t) =>
+          handleToken(t, 'vueTemplate')
+        )
         if (sfcDescriptor.script) {
-          sfcDescriptor.script.content = codeReplace(sfcDescriptor.script.content, tokens[1], (t) => handleToken(t, 'vueScript'))
+          sfcDescriptor.script.content = codeReplace(sfcDescriptor.script.content, tokens[1], (t) =>
+            handleToken(t, 'vueScript')
+          )
         }
         if (sfcDescriptor.scriptSetup) {
-          sfcDescriptor.scriptSetup.content = codeReplace(sfcDescriptor.scriptSetup.content, tokens[1], (t) => handleToken(t, 'script'))
+          sfcDescriptor.scriptSetup.content = codeReplace(sfcDescriptor.scriptSetup.content, tokens[1], (t) =>
+            handleToken(t, 'script')
+          )
         }
         newCode = compile(sfcDescriptor)
         break
