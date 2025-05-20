@@ -101,8 +101,8 @@ export function parseTemplate(template, offset = 0) {
         // ES6模版语法匹配
         if (keyword === '`' && params.length) {
           const text = codeReplace(
-            originText,
-            params.map((p) => ({ ...p, start: p.start - originStart, end: p.end - originStart })),
+            matchText,
+            params.map((p) => ({ ...p, start: p.start - matchStart, end: p.end - matchStart })),
             (item) => getParamTemplate(item.name)
           )
           tokens.push({
