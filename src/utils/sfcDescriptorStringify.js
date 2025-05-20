@@ -1,5 +1,3 @@
-import prettier from 'prettier'
-
 export default function toString(sfcDescriptor) {
   const { template, script, scriptSetup, styles, customBlocks } = sfcDescriptor
   const code = [template, script, scriptSetup, ...styles, ...customBlocks]
@@ -39,9 +37,7 @@ export default function toString(sfcDescriptor) {
       return sfcCode + '\n'.repeat(newlinesBefore) + block.openTag + block.content + block.closeTag
     }, '')
 
-  return prettier.format(code, {
-    parser: 'vue'
-  })
+  return code
 }
 
 function makeOpenTag(block) {

@@ -75,7 +75,7 @@ export function parseTemplate(template, offset = 0) {
     if (['${', '{', '{{'].includes(keyword)) {
       isExp = true
     }
-    if (['}', '}}'].includes(keyword)) {
+    if (['}', '}}'].includes(keyword) && keywordStack.every((item) => !['${', '{', '{{'].includes(item.keyword))) {
       isExp = false
     }
     if (matched) {
@@ -87,7 +87,7 @@ export function parseTemplate(template, offset = 0) {
       const originEnd = pos
       // 包含关键字的原始文案内容
       const originText = template.slice(originStart, originEnd + 1)
-      if (isChineseChar(originText)) {
+      if (isChineseChar(originText) && !isExp) {
         // 一个纯粹的字符串包含中文
         if (["'", '"', '`'].includes(matched.keyword) && !params.length) {
           tokens.push({
@@ -100,9 +100,14 @@ export function parseTemplate(template, offset = 0) {
         }
         // ES6模版语法匹配
         if (keyword === '`' && params.length) {
+          const text = codeReplace(
+            originText,
+            params.map((p) => ({ ...p, start: p.start - originStart, end: p.end - originStart })),
+            (item) => getParamTemplate(item.name)
+          )
           tokens.push({
             type: 'template',
-            text: codeReplace(originText, params, (item) => getParamTemplate(item.name)).slice(1, originText.length),
+            text,
             start: offset + originStart,
             end: offset + originEnd,
             params,
@@ -112,7 +117,6 @@ export function parseTemplate(template, offset = 0) {
         }
       }
       // ES6模板语法中的参数匹配
-      /* prettier-ignore */
       if (
         (keyword === '}' && matched.keyword === '${') ||
         // 保证{}包裹的非注释的部分
@@ -151,6 +155,13 @@ export function parseTemplate(template, offset = 0) {
   }
   // 对剩余的内容进行合并
   mergeTokens()
+  // 如果最后还有 params，说明是{ xxx }这种对象格式的被匹配为模版了，得把params里的内容拿出来
+  if (params.length) {
+    params.map((item) => {
+      const offset = item.origin.indexOf(item.expression)
+      tokens.push(...item.tokens.map((t) => ({ ...t, start: offset + t.start, end: offset + t.end })))
+    })
+  }
   return tokens
 
   // 匹配中文
@@ -158,12 +169,12 @@ export function parseTemplate(template, offset = 0) {
     const zhMatch = string.match(chinese)
     while (zhMatch && zhMatch.length) {
       const char = zhMatch.shift()
-      start = start + string.indexOf(char)
+      const charStart = start + string.indexOf(char)
       tokens.push({
         type: 'text',
         text: char,
-        start: offset + start,
-        end: offset + start + char.length - 1
+        start: offset + charStart,
+        end: offset + charStart + char.length - 1
       })
     }
   }
@@ -200,7 +211,10 @@ export function parseTemplate(template, offset = 0) {
     if (!tokens.length || !params.length) return
     if (!tokens.some((item, idx) => item.type === 'text' && idx > mergedIdx)) return
     // 合并token和params方便计算最小start和最大end
-    const combined = [...tokens, ...params.map((p) => ({ ...p, start: offset + p.start, end: offset + p.end }))]
+    const combined = [
+      ...tokens.slice(mergedIdx + 1),
+      ...params.map((p) => ({ ...p, start: offset + p.start, end: offset + p.end }))
+    ]
     // 计算 start 和 end 范围
     const mergedStart = Math.min(...combined.map((item) => item.start))
     const mergedEnd = Math.max(...combined.map((item) => item.end))
@@ -211,7 +225,7 @@ export function parseTemplate(template, offset = 0) {
       (item) => getParamTemplate(item.name)
     )
     // 删除原来tokens中的内容
-    tokens.splice(0, tokens.length)
+    tokens.splice(mergedIdx + 1, tokens.length)
     tokens.push({
       type: 'text',
       text,

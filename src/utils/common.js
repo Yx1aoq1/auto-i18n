@@ -61,7 +61,9 @@ export function splice(source, start, end, replace) {
 export function codeReplace(origin, tokens, callback) {
   let code = origin
   let offset = 0
+  // logger.debug('origin code:', origin)
   tokens.forEach((token) => {
+    // logger.debug(`start: ${origin[token.start]}, end: ${origin[token.end]}`)
     code = splice(code, token.start + offset, token.end + offset, callback(token))
     offset = code.length - origin.length
   })

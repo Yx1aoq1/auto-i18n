@@ -1,81 +1,48 @@
 <template>
   <div>
     <!-- 普通的标签中 -->
-    <div>{{ $t("common.text") }}</div>
+    <div>纯文字替换</div>
     <!-- 带空格的文字 -->
-    <div>{{ $t("template.trans_raf1fnuazms") }}</div>
+    <div>带空格的文字</div>
     <!-- 带换行的文字 -->
-    <div>{{ $t("template.trans_fgjnau3dpf") }}</div>
+    <div>带换行的文字</div>
     <!-- 中文 + {{变量}} -->
-    <div>{{ $t("template.trans_qgm02o8gll") }}{{ value }}</div>
+    <div>中文+变量显示：{{ value }}</div>
     <!-- {{变量}} + 中文 -->
     <div>
       {{ value }}
-      {{ $t("template.trans_xnhfpk2bb5n") }}
+      变量后的中文
     </div>
     <!-- 中文 + 多个变量 -->
-    <div>
-      {{ $t("template.trans_wwz2gdxsp") }}{{ value1
-      }}{{ $t("template.trans_3wp1okzanm5")
-      }}{{ fun($t("template.trans_7ae8avqev08"))
-      }}{{ $t("template.trans_2c159xkhaah") }}{{ time | dateFormat }}
-    </div>
+    <div>中文1{{ value1 }}中文2{{ fun('函数内部中文') }}中文3{{ time | dateFormat }}</div>
     <!-- 换行测试 -->
-    <div>
-      {{ $t("template.trans_0nd7zk2pt2z") }}
-      {{ $t("template.trans_h2zimn2jn2") }}
-      {{ $t("template.trans_dz5z464ttft") }}
-    </div>
+    <div>1.第一行 2.第二行 3.第三行</div>
     <!-- 属性纯中文 -->
-    <input :placeholder="$t('template.trans_hnw4s6x1636')" />
+    <input placeholder="属性纯中文" />
     <!-- 属性值为 `中文${变量}` -->
-    <input :placeholder="$t('template.trans_7rv1pr8hpd7', { value })" />
+    <input :placeholder="`ES6模板字符串${value}`" />
     <!-- 属性值为 嵌套模板字符串 -->
-    <input
-      :placeholder="
-        $t('template.trans_lxnh9z91o6m', {
-          value,
-          value0: fun(
-            flag
-              ? $t('template.trans_56n9b85gca5')
-              : $t('template.trans_ngxl05cb25', { value })
-          ),
-        })
-      "
-    />
+    <input :placeholder="`ES6模板字符串${fun(flag ? '中文字符串1' : `模板字符串2${value}`)}`" />
     <!-- 属性值为对象 -->
-    <DemoComponent
-      :rule="{ reuqired: true, message: $t('template.trans_a86rokx654v') }"
-    ></DemoComponent>
+    <DemoComponent :rule="{ reuqired: true, message: '不能为空' }"></DemoComponent>
     <!-- 属性值为数组 -->
-    <DemoComponent
-      :array="[
-        $t('template.trans_2d4pe2f1v8m'),
-        $t('template.trans_pgec3zm4z6g'),
-      ]"
-    ></DemoComponent>
+    <DemoComponent :array="['元素1', '元素2']"></DemoComponent>
     <!-- 多个属性中文测试 -->
-    <DemoComponent
-      :a="$t('template.trans_umvbskj32q')"
-      :b="$t('template.trans_mq8plw2gq3a')"
-    ></DemoComponent>
+    <DemoComponent a="中文a" b="中文b"></DemoComponent>
     <!-- 重复中文测试 -->
-    <DemoComponent
-      :a="$t('template.trans_7w1oulc2wgt')"
-      :b="$t('template.trans_7w1oulc2wgt')"
-    ></DemoComponent>
+    <DemoComponent a="中文c" b="中文c"></DemoComponent>
     <!-- 测试属性表达式 -->
-    <DemoComponent
-      :text="$t('template.trans_j0bb1abevnb') + name"
-    ></DemoComponent>
+    <DemoComponent :text="'你好' + name"></DemoComponent>
   </div>
 </template>
 <script setup>
-const name = i18n.t("template.trans_6xfahw3bowb");
+const name = '测试export以外的中文'
 
 function log() {
-  const name = "xm";
-  alert(i18n.t("template.trans_ekvp72x2xmu", { name }));
-  alert(i18n.t("template.trans_5yytir9yrel", { value0: this.text }));
+  const name = 'xm'
+  alert(`中文模板变量 ${name}`)
+  alert(`中文模板变量 ${this.text}`)
 }
 </script>
+
+<style lang="less" scoped></style>

@@ -16,6 +16,9 @@ global.logger = {
   info: function () {
     console.log(chalk.cyan('[auto-i18n] '), [].slice.call(arguments).join(' '))
   },
+  debug: function () {
+    console.log(chalk.gray('[debug] '), [].slice.call(arguments).join(' '))
+  },
   logWithTime: function () {
     info(
       chalk.cyan('[auto-i18n] ') +

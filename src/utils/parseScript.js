@@ -10,7 +10,7 @@ import { parseHTML as _parseHTML } from './parseHTML'
  * @param {*} html
  * @returns
  */
-export function parseHTML(html, offset = 0) {
+export function parseHTML(html) {
   const tokens = []
   _parseHTML(html, {
     expectHTML: true,
@@ -22,6 +22,7 @@ export function parseHTML(html, offset = 0) {
             tokens.push({
               type: 'attribute',
               ...attr,
+              end: attr.end - 1,
               tokens: parseTemplate(attr.value)
             })
           }
@@ -33,8 +34,8 @@ export function parseHTML(html, offset = 0) {
         tokens.push({
           type: 'chars',
           text,
-          start: offset + start,
-          end: offset + end - 1,
+          start,
+          end: end - 1,
           tokens: parseTemplate(text)
         })
       }
@@ -72,18 +73,24 @@ export function parseScript(code, type) {
             type: 'attribute',
             name: path.parent.name.name,
             start: path.parent.start,
-            end: path.parent.end,
+            end: path.parent.end - 1,
             value: path.node.value,
             tokens: parseTemplate(path.node.value)
           })
         } else {
-          tokens.push({
-            type: 'string',
-            text: path.node.value,
-            start: path.node.start,
-            end: path.node.end
-          })
+          // 检查是否在 JSX 表达式中，但不在 JSX 属性内
+          const isInJSXExpression = path.findParent((p) => p.type === 'JSXExpressionContainer')
+          const isInJSXAttribute = path.findParent((p) => p.type === 'JSXAttribute')
+          if (!isInJSXExpression || isInJSXAttribute) {
+            tokens.push({
+              type: 'string',
+              text: path.node.value,
+              start: path.node.start,
+              end: path.node.end - 1
+            })
+          }
         }
+        matchEnd = path.node.end
       }
     },
     TemplateLiteral(path) {
@@ -94,17 +101,65 @@ export function parseScript(code, type) {
 
       if (hasChineseText) {
         tokens.push(...parseTemplate(generate(path.node).code, path.node.start))
+        matchEnd = path.node.end
       }
     },
     JSXText(path) {
       // 检查相邻的 JSX 表达式
-      let text = path.node.value.trim()
+      const text = path.node.value
       if (!text || !isChineseChar(text)) return
-      if (matchEnd > path.parent.start) return
-      matchEnd = path.parent.end
-      const template = generate(path.parent).code
-      const offset = path.parent.start
-      tokens.push(...parseHTML(template, offset))
+
+      // 获取当前节点的完整文本内容
+      let start = path.node.start
+      let end = path.node.end
+
+      // 已处理过，跳过
+      if (matchEnd > start) return
+
+      // 检查相邻的 JSX 表达式节点
+      const siblings = path.parent.children
+      const currentIndex = siblings.indexOf(path.node)
+      // 记录文本
+      let completeText = text
+
+      // 向前查找相邻的 JSX 表达式
+      for (let i = currentIndex - 1; i >= 0; i--) {
+        const sibling = siblings[i]
+        if (sibling.type === 'JSXExpressionContainer') {
+          const exprText = generate(sibling).code
+          completeText = exprText + completeText
+          start = Math.min(start, sibling.start)
+        } else if (sibling.type === 'JSXText') {
+          completeText = sibling.value + completeText
+          start = Math.min(start, sibling.start)
+        } else {
+          break
+        }
+      }
+
+      // 向后查找相邻的 JSX 表达式
+      for (let i = currentIndex + 1; i < siblings.length; i++) {
+        const sibling = siblings[i]
+        if (sibling.type === 'JSXExpressionContainer') {
+          const exprText = generate(sibling).code
+          completeText = completeText + exprText
+          end = Math.max(end, sibling.end)
+        } else if (sibling.type === 'JSXText') {
+          completeText = completeText + sibling.value
+          end = Math.max(end, sibling.end)
+        } else {
+          break
+        }
+      }
+      // 更新 matchEnd 为实际处理的最后一个节点的结束位置
+      matchEnd = end
+      tokens.push({
+        type: 'chars',
+        text: completeText,
+        start: start,
+        end: end - 1,
+        tokens: parseTemplate(completeText)
+      })
     }
   })
 

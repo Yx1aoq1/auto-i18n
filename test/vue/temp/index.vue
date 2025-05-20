@@ -3,13 +3,11 @@
     <!-- 普通的标签中 -->
     <div>纯文字替换</div>
     <!-- 带空格的文字 -->
-    <div> 带空格的文字 </div>
+    <div>带空格的文字</div>
     <!-- 带换行的文字 -->
-    <div>
-      带换行的文字
-    </div>
+    <div>带换行的文字</div>
     <!-- 中文 + {{变量}} -->
-    <div> 中文+变量显示：{{ value }} </div>
+    <div>中文+变量显示：{{ value }}</div>
     <!-- {{变量}} + 中文 -->
     <div>
       {{ value }}
@@ -18,11 +16,7 @@
     <!-- 中文 + 多个变量 -->
     <div>中文1{{ value1 }}中文2{{ fun('函数内部中文') }}中文3{{ time | dateFormat }}</div>
     <!-- 换行测试 -->
-    <div>
-      1.第一行
-      2.第二行
-      3.第三行
-    </div>
+    <div>1.第一行 2.第二行 3.第三行</div>
     <!-- 属性纯中文 -->
     <input placeholder="属性纯中文" />
     <!-- 属性值为 `中文${变量}` -->
@@ -53,7 +47,7 @@ export default {
     return {
       value: 123,
       text: '测试定义变量中文',
-      array: ['中文数组1', '中文数组2'],
+      array: ['中文数组1', '中文数组2']
     }
   },
   created() {},
@@ -63,8 +57,8 @@ export default {
       const name = 'xm'
       alert(`中文模板变量 ${name}`)
       alert(`中文模板变量 ${this.text}`)
-    },
-  },
+    }
+  }
 }
 </script>
 
