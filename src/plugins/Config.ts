@@ -1,5 +1,4 @@
-// src/config.ts
-import { CONFIG_FILE_NAME, TRANSLATE_MODES } from '@/constants'
+import { CONFIG_FILE_NAME, SourceLangKey, TRANSLATE_MODES } from '@/constants'
 import fs from 'fs'
 import path from 'path'
 import { trimEnd } from 'lodash'
@@ -37,7 +36,7 @@ export class Config {
 
   // 默认匹配识别的语言
   static get sourceLanguage(): string {
-    return this.getConfig<string>('sourceLanguage') || 'zh-cn'
+    return this.getConfig<string>('sourceLanguage') || SourceLangKey.ZH
   }
 
   // 读取locales配置时对应的拓展名
@@ -100,7 +99,7 @@ export class Config {
 
   // 参数模板格式，expression 表示中间要替换的参数名称，例如： {{expression}} / ${expression}
   static get expressionTmp() {
-    return this.getConfig<string[]>('expressionTmp') ?? '{expression}'
+    return this.getConfig<string>('expressionTmp') ?? '{expression}'
   }
 
   // 命名空间风格，如大写驼峰/小写驼峰等，会自动转换

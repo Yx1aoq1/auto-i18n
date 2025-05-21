@@ -1,5 +1,9 @@
-export {}
+import type { Logger } from './utils/logger'
+
+/* eslint-disable no-var */
 
 declare global {
-  var logger: import('./utils/logger').Logger
+  var logger: Logger
 }
+
+export {}

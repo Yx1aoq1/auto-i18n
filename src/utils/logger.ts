@@ -18,28 +18,28 @@ export const logger: Logger = {
   success: function (...args: any[]) {
     info(chalk.green(' √ ' + args.join(' ')))
   },
-  warn: function () {
-    info(chalk.yellow(' ∆ ' + [].slice.call(arguments).join(' ')))
+  warn: function (...args: any[]) {
+    info(chalk.yellow(' ∆ ' + args.join(' ')))
   },
-  error: function () {
-    info(
-      chalk.bold.red(' X '),
-      chalk.bold.red([].slice.call(arguments).join(' '))
-    )
+  error: function (...args: any[]) {
+    info(chalk.bold.red(' X '), chalk.bold.red(args.join(' ')))
   },
-  info: function () {
-    console.log(chalk.cyan('[auto-i18n] '), [].slice.call(arguments).join(' '))
+  info: function (...args: any[]) {
+    console.log(chalk.cyan('[auto-i18n] '), args.join(' '))
   },
-  debug: function () {
-    console.log(chalk.gray('[debug] '), [].slice.call(arguments).join(' '))
+  debug: function (...args: any[]) {
+    console.log(chalk.gray('[debug] '), args.join(' '))
   },
-  logWithTime: function () {
+  logWithTime: function (...args: any[]) {
     info(
       chalk.cyan('[auto-i18n] ') +
         ' [' +
         dayjs().format('YY.MM.DD HH:mm:ss') +
         '] ' +
-        [].slice.call(arguments).join(' ')
+        args.join(' ')
     )
   },
 }
+
+// 将 logger 挂载到全局
+global.logger = logger

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import './utils/logger'
 import { Command } from 'commander'
 import { version } from '../package.json'
 import commands from './commands'

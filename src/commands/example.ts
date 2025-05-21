@@ -1,4 +1,5 @@
 import { Command } from 'commander'
+import { pickI18n } from '@/pickers/utils'
 
 export default (program: Command) => {
   program
@@ -6,7 +7,7 @@ export default (program: Command) => {
     .description('示例命令')
     .option('-d, --debug', '调试模式')
     .action((name: string, options: { debug?: boolean }) => {
-      // 命令逻辑
-      console.log(`你好 ${name}`, options.debug ? ' (调试模式)' : '')
+      const a = pickI18n('`测试测试 ${value} 测试测试`')
+      console.log('🚀 ~ .action ~ a:', a)
     })
 }

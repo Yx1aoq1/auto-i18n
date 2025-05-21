@@ -1,3 +1,8 @@
+// @ts-nocheck
+/**
+ * Not type-checking this file because it's mostly vendor code.
+ */
+
 export default function toString(sfcDescriptor) {
   const { template, script, scriptSetup, styles, customBlocks } = sfcDescriptor
   const code = [template, script, scriptSetup, ...styles, ...customBlocks]
