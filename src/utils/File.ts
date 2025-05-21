@@ -1,100 +1,112 @@
-import path, { normalize } from 'path'
-import iconv from 'iconv-lite'
-import fs from 'fs-extra'
+import fs from 'fs'
+import path from 'path'
 
-interface FileEncoding {
-  encoding: string
-  bom: boolean
+const cwd = process.cwd()
+
+export function getExtname(path: string) {
+  return path.slice(((path.lastIndexOf('.') - 1) >>> 0) + 2)
 }
 
-interface DecodeData {
-  encoding: string
-  bom: boolean
-  content: string
+export function getFilenameWithoutExt(path: string) {
+  const files = path.split(/\/|\\/)
+  const filename = files.length ? files[files.length - 1] : ''
+  return filename.split('.')[0]
 }
 
-const defaultEncoding = 'utf-8'
-const encodingMapping: Record<string, string> = {
-  ascii: defaultEncoding,
-  'windows-1252': defaultEncoding,
-}
-
-export class File {
-  private static _fileEncoding: Record<string, FileEncoding> = {}
-
-  private static __setFileEncoding(filepath: string, encoding: FileEncoding) {
-    filepath = normalize(filepath)
-    this._fileEncoding[filepath] = encoding
+/**
+ * 创建文件目录，确保文件目录存在
+ * @param {string} filePath
+ */
+export function ensureDirectoryExistence(filePath: string): boolean {
+  const dirname = path.dirname(filePath)
+  if (fs.existsSync(dirname)) {
+    return true
   }
+  ensureDirectoryExistence(dirname)
+  fs.mkdirSync(dirname)
+  return true
+}
 
-  private static __getFileEncoding(filepath: string): FileEncoding {
-    filepath = normalize(filepath)
-    const info: FileEncoding = this._fileEncoding[filepath] || {
-      encoding: '',
-      bom: false,
+/**
+ * 判断当前目录是否是文件夹
+ * @param {string} filepath
+ */
+export function isDirectory(filepath: string): boolean {
+  return fs.statSync(filepath).isDirectory()
+}
+
+/**
+ * 导出文件到指定位置
+ * @param {string} filepath
+ * @param {string | Buffer} buffer
+ * @param {fs.WriteFileOptions} options
+ */
+export function exportFile(
+  filepath: string,
+  buffer: string | Buffer,
+  options?: fs.WriteFileOptions
+): void {
+  // 确保目录存在
+  ensureDirectoryExistence(filepath)
+  return fs.writeFileSync(filepath, buffer, options)
+}
+
+/**
+ * 遍历文件夹
+ */
+export function travelDir(
+  src: string,
+  callback: (filepath: string) => void
+): void {
+  fs.readdirSync(src).forEach((filename) => {
+    // 判断是否为文件夹
+    const filepath = path.join(src, filename)
+    if (isDirectory(filepath)) {
+      travelDir(filepath, callback)
+    } else {
+      callback(filepath)
     }
+  })
+}
 
-    if (!info.encoding) info.encoding = defaultEncoding
+/**
+ * 获取文件路径层级
+ * @param {string} filepath - 文件或文件夹路径
+ * @returns {number}
+ */
+export function getPathLevel(filepath: string): number {
+  // 统一路径分隔符为正斜杠
+  const normalizedPath = filepath.replace(/\\/g, '/')
+  // 分割路径
+  const parts = normalizedPath.split('/').filter(Boolean)
 
-    return info
+  return parts.length
+}
+
+/**
+ * 获取文件路径的指定层级
+ * @param {string} filepath - 文件或文件夹路径
+ * @param {number} level - 要获取的层级，正数从前往后数，负数从后往前数
+ * @returns {string|undefined} 返回指定层级的路径名，如果超出范围则返回undefined
+ */
+export function getPathByLevel(
+  filepath: string,
+  level: number
+): string | undefined {
+  // 统一路径分隔符为正斜杠
+  const normalizedPath = filepath.replace(/\\/g, '/')
+  // 分割路径
+  const parts = normalizedPath.split('/').filter(Boolean)
+
+  // 处理负数索引
+  if (level < 0) {
+    level = parts.length + level + 1
   }
 
-  static async read(
-    filepath: string,
-    encodingConfig: string = defaultEncoding
-  ): Promise<string> {
-    const raw = await fs.readFile(filepath)
-    const { encoding, bom, content } = File.decode(raw, encodingConfig)
-    // console.log('READ', filepath, encoding, bom)
-    this.__setFileEncoding(filepath, { encoding, bom })
-    return content
+  // 检查索引是否在有效范围内
+  if (level < 0 || level >= parts.length) {
+    return undefined
   }
 
-  static readSync(
-    filepath: string,
-    encodingConfig: string = defaultEncoding
-  ): string {
-    const raw = fs.readFileSync(filepath)
-    const { encoding, bom, content } = File.decode(raw, encodingConfig)
-    this.__setFileEncoding(filepath, { encoding, bom })
-    return content
-  }
-
-  static async write(filepath: string, data: any, opts?: FileEncoding) {
-    const { encoding, bom } = opts || this.__getFileEncoding(filepath)
-    await fs.ensureDir(path.dirname(filepath))
-    const buffer = Buffer.from(File.encode(data, encoding, bom))
-    await fs.writeFile(filepath, buffer)
-  }
-
-  static writeSync(filepath: string, data: any, opts?: FileEncoding) {
-    const { encoding, bom } = opts || this.__getFileEncoding(filepath)
-    fs.ensureDirSync(path.dirname(filepath))
-    const buffer = Buffer.from(File.encode(data, encoding, bom))
-    fs.writeFileSync(filepath, buffer)
-  }
-
-  static decode(buffer: Buffer, encoding?: string): DecodeData {
-    if (!encoding) encoding = defaultEncoding
-
-    if (encodingMapping[encoding]) encoding = encodingMapping[encoding]
-
-    const content = iconv.decode(buffer, encoding)
-    let bom = false
-
-    // Catches EFBBBF (UTF-8 BOM) because the buffer-to-string
-    // conversion translates it to FEFF (UTF-16 BOM)
-    if (buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf)
-      bom = true
-
-    return {
-      encoding,
-      content,
-      bom,
-    }
-  }
-
-  static encode(string: string, encoding: string, addBOM = true): Buffer {
-    return iconv.encode(string, encoding, { addBOM })
-  }
+  return parts[level - 1]
 }

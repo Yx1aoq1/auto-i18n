@@ -17,13 +17,16 @@
     "format:check": "prettier --check \"src/**/*.ts\""
   },
   "dependencies": {
+    "change-case": "^5.4.4",
     "commander": "^11.1.0",
+    "dayjs": "^1.11.13",
     "fs-extra": "^11.3.0",
-    "iconv-lite": "^0.6.3"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^29.5.12",
+    "@types/lodash": "^4.17.17",
     "@types/node": "^20.11.24",
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",

@@ -1,5 +1,5 @@
-import { File } from '@/utils'
-
+import { ensureDirectoryExistence } from '@/utils'
+import fs from 'fs'
 export abstract class Parser {
   abstract readonly id: string
 
@@ -19,14 +19,15 @@ export abstract class Parser {
   }
 
   async load(filepath: string): Promise<object> {
-    const raw = await File.read(filepath)
+    const raw = fs.readFileSync(filepath, 'utf-8')
     if (!raw) return {}
     return await this.parse(raw)
   }
 
   async save(filepath: string, object: object) {
     const text = await this.dump(object)
-    await File.write(filepath, text)
+    ensureDirectoryExistence(filepath)
+    fs.writeFileSync(filepath, text)
   }
 
   abstract parse(text: string): Promise<object>
