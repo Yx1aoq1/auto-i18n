@@ -1,12 +1,10 @@
 /**
  * 项目公共类型声明
  */
-import { KEY_STYLE, TRANSLATE_MODES, VUE_TYPES } from '@/constants'
+import { KEY_STYLE, VUE_TYPES } from '@/constants'
 import { Command } from 'commander'
 
 export type CommandModule = (program: Command) => void
-
-export type TranslateMode = (typeof TRANSLATE_MODES)[number]
 
 export type KeyStyle = (typeof KEY_STYLE)[number]
 

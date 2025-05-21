@@ -24,8 +24,6 @@ export class Global {
 
   static includeSubfolders = Config.includeSubfolders
 
-  static translateMode = Config.translateMode
-
   static getPathMatchers() {
     const rules = Array.isArray(Config.pathMatcher)
       ? Config.pathMatcher

@@ -38,6 +38,17 @@ export class Translator {
       const localeKey = this.localeLoader.findMatchLocaleKey(text, namespace)
       logger.info(`Match: ${text} --> ${localeKey}`)
       const key = `'${localeKey}'${expression ? `, ${expression}` : ''}`
+
+      if (typeof Global.i18nFuncTemp === 'function') {
+        return Global.i18nFuncTemp({
+          text,
+          key,
+          extname,
+          type,
+          ext,
+        })
+      }
+
       const compiled = template(Global.i18nFuncTemp)
       const [context, func] = compiled({ key }).split('.')
 
@@ -92,7 +103,7 @@ export class Translator {
           if (extname === 'vue') {
             replaceValue = `${token.name[0] === ':' ? '' : ':'}${token.name}="${value}"`
           }
-          if (extname === 'html' && Global.translateMode === 'angular') {
+          if (extname === 'html') {
             replaceValue = `${token.name[0] === '[' ? token.name : `[${token.name}]`}="${value}"`
           }
           break

@@ -1,9 +1,17 @@
-import { CONFIG_FILE_NAME, SourceLangKey, TRANSLATE_MODES } from '@/constants'
+import { CONFIG_FILE_NAME, SourceLangKey } from '@/constants'
 import fs from 'fs'
 import path from 'path'
 import { trimEnd } from 'lodash'
-import { KeyStyle, TranslateMode, VueExtType } from '@/types'
+import { KeyStyle, VueExtType } from '@/types'
 import { CaseStyles } from '@/utils'
+import { MatchToken } from '@/transform'
+
+interface I18nFuncParams {
+  key: string
+  extname: string
+  type: MatchToken['type']
+  ext?: VueExtType
+}
 
 const cwd = process.cwd()
 
@@ -78,18 +86,6 @@ export class Config {
     return this.getConfig<boolean>('includeSubfolders') || false
   }
 
-  // 翻译解析模式
-  static get translateMode(): TranslateMode {
-    const mode = this.getConfig<string | undefined>('translateMode')
-    function isTranslateMode(value: any): value is TranslateMode {
-      return TRANSLATE_MODES.includes(value)
-    }
-    if (isTranslateMode(mode)) {
-      return mode
-    }
-    return undefined
-  }
-
   // 导出格式 Can be flat({"a.b.c": "..."}) or nested({"a": {"b": {"c": "..."}}})
   static get keyStyle(): KeyStyle {
     const style = this.getConfig<KeyStyle>('keystyle') || 'auto'
@@ -109,6 +105,10 @@ export class Config {
 
   // 国际化的i18n方法 如 i18n.t(${key})
   static get i18nFuncTemp() {
-    return this.getConfig<string>('i18nFuncTemp') ?? 'i18n.$t(${key})'
+    return (
+      this.getConfig<string | ((opt: I18nFuncParams) => string)>(
+        'i18nFuncTemp'
+      ) ?? 'i18n.$t(${key})'
+    )
   }
 }
