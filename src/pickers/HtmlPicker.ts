@@ -1,8 +1,10 @@
 import { isMatchLang, MatchToken, pickI18n } from './utils'
 import { parseHTML } from '@/vendor/parseHTML'
 
-export function HtmlPicker(html: string) {
+export function HtmlPicker(html?: string) {
   const tokens: MatchToken[] = []
+  if (!html) return []
+
   parseHTML(html, {
     expectHTML: true,
     shouldKeepComment: false,

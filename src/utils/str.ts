@@ -21,3 +21,10 @@ export function replace(
 ) {
   return source.slice(0, start) + replace + source.slice(end + 1)
 }
+
+/**
+ * 判断是否包含中文字符
+ */
+export function isChineseChar(str: string): boolean {
+  return /[\u4e00-\u9fa5]/.test(str)
+}
