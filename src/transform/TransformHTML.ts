@@ -1,9 +1,11 @@
+import { VueExtType } from '@/types'
 import { isMatchLang, MatchToken, pickI18n, replaceI18n } from './utils'
 import { parseHTML } from '@/vendor/parseHTML'
 
 export function TransformHTML(
   code: string | undefined,
-  replace: (token: MatchToken, origin: string) => string
+  replace: (token: MatchToken, origin: string, ext?: VueExtType) => string,
+  ext?: VueExtType
 ) {
   const tokens: MatchToken[] = []
 
@@ -39,7 +41,7 @@ export function TransformHTML(
     },
   })
 
-  const newCode = replaceI18n(code, tokens, replace)
+  const newCode = replaceI18n(code, tokens, (t, o) => replace(t, o, ext))
 
   return {
     origin: code,

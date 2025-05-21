@@ -48,4 +48,6 @@ export class Global {
   static expressionTmp = Config.expressionTmp
 
   static namespaceCaseStyle = Config.namespaceCaseStyle
+
+  static i18nFuncTemp = Config.i18nFuncTemp
 }

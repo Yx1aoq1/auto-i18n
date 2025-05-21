@@ -2,7 +2,7 @@ import { CONFIG_FILE_NAME, SourceLangKey, TRANSLATE_MODES } from '@/constants'
 import fs from 'fs'
 import path from 'path'
 import { trimEnd } from 'lodash'
-import { KeyStyle, TranslateMode } from '@/types'
+import { KeyStyle, TranslateMode, VueExtType } from '@/types'
 import { CaseStyles } from '@/utils'
 
 const cwd = process.cwd()
@@ -105,5 +105,10 @@ export class Config {
   // 命名空间风格，如大写驼峰/小写驼峰等，会自动转换
   static get namespaceCaseStyle() {
     return this.getConfig<CaseStyles>('namespaceCaseStyle') ?? 'default'
+  }
+
+  // 国际化的i18n方法 如 i18n.t(${key})
+  static get i18nFuncTemp() {
+    return this.getConfig<string>('i18nFuncTemp') ?? 'i18n.$t(${key})'
   }
 }

@@ -3,6 +3,8 @@ import { Global, LocaleLoader } from '.'
 import fs from 'fs'
 import { MatchToken, replaceI18n } from '@/transform/utils'
 import { TransformHTML, TransformScript, TransformVue } from '@/transform'
+import { VueExtType } from '@/types'
+import { template } from 'lodash'
 
 export class Translator {
   static async create() {
@@ -30,22 +32,40 @@ export class Translator {
       text: string,
       type: MatchToken['type'],
       namespace: string | undefined,
-      expression: string
+      expression: string,
+      ext?: VueExtType
     ) => {
       const localeKey = this.localeLoader.findMatchLocaleKey(text, namespace)
       logger.info(`Match: ${text} --> ${localeKey}`)
-      const translationKey = `'${localeKey}'${expression ? `, ${expression}` : ''}`
-      return translationKey
+      const key = `'${localeKey}'${expression ? `, ${expression}` : ''}`
+      const compiled = template(Global.i18nFuncTemp)
+      const [context, func] = compiled({ key }).split('.')
+
+      if (ext === 'vueTemplate' && type === 'text') {
+        return `{{ ${func ?? context} }}`
+      }
+      if (ext === 'vueScript') {
+        return `this.${func ?? context}`
+      }
+      if (['jsx', 'tsx'].includes(extname) && type === 'text') {
+        return `{${func ?? context}}`
+      }
+      if (type === 'string') {
+        return `${func ?? context}`
+      }
+      return func ? `${context}.${func}` : context
     }
 
-    const replace = (token: MatchToken, origin: string) => {
+    const replace = (token: MatchToken, origin: string, ext?: VueExtType) => {
       let replaceValue = origin
       let expression = ''
       if (token.type !== 'attribute' && token.type !== 'chars') {
         const params = (token.params ?? []).map((item) => ({
           name: item.name,
           value: item.expression
-            ? replaceI18n(item.expression, item?.tokens ?? [], replace)
+            ? replaceI18n(item.expression, item?.tokens ?? [], (t, o) =>
+                replace(t, o, ext)
+              )
             : null,
         }))
         expression = params
@@ -58,10 +78,14 @@ export class Translator {
       }
       switch (token.type) {
         case 'chars':
-          replaceValue = replaceI18n(token.text, token.tokens, replace)
+          replaceValue = replaceI18n(token.text, token.tokens, (t, o) =>
+            replace(t, o, ext)
+          )
           break
         case 'attribute':
-          const value = replaceI18n(token.value, token.tokens, replace)
+          const value = replaceI18n(token.value, token.tokens, (t, o) =>
+            replace(t, o, ext)
+          )
           if (['jsx', 'tsx'].includes(extname)) {
             replaceValue = `${token.name}={${value}}`
           }
@@ -79,7 +103,8 @@ export class Translator {
             token.text,
             token.type,
             namespace,
-            expression
+            expression,
+            ext
           )
           break
       }
@@ -102,7 +127,7 @@ export class Translator {
     }
   }
 
-  private translateSingle(
+  private single(
     filepath: string,
     opt: { namespace?: string; replace?: boolean }
   ) {
@@ -125,10 +150,10 @@ export class Translator {
   ) {
     if (isDirectory(filepath)) {
       travelDir(filepath, (path) => {
-        this.translateSingle(path, opt)
+        this.single(path, opt)
       })
     } else {
-      this.translateSingle(filepath, opt)
+      this.single(filepath, opt)
     }
     logger.info(`开始导出翻译文件...`)
     await this.localeLoader.export(opt.namespace)

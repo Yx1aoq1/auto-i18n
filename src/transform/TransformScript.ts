@@ -3,6 +3,7 @@ import traverse from '@babel/traverse'
 import generate from '@babel/generator'
 import { NodePath } from '@babel/traverse'
 import * as t from '@babel/types'
+import { VueExtType } from '@/types'
 import { isMatchLang, MatchToken, pickI18n, replaceI18n } from './utils'
 
 type PluginConfig = parser.ParserPlugin
@@ -30,7 +31,8 @@ function parseToAST(code: string, type: string) {
 export function TransformScript(
   code: string | undefined,
   type: string,
-  replace: (token: MatchToken, origin: string) => string
+  replace: (token: MatchToken, origin: string, ext?: VueExtType) => string,
+  ext?: VueExtType
 ) {
   if (!code) return
 
@@ -165,7 +167,7 @@ export function TransformScript(
     },
   })
 
-  const newCode = replaceI18n(code, tokens, replace)
+  const newCode = replaceI18n(code, tokens, (t, o) => replace(t, o, ext))
 
   return {
     origin: code,

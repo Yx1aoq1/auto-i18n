@@ -2,12 +2,13 @@ import { parse } from '@vue/compiler-sfc'
 import { cloneDeep } from 'lodash'
 import { TransformHTML } from './TransformHTML'
 import { TransformScript } from './TransformScript'
-import { MatchToken, replaceI18n } from './utils'
+import { MatchToken } from './utils'
 import compile from '@/vendor/sfcDescriptorStringify'
+import { VueExtType } from '@/types'
 
 export function TransformVue(
   code: string,
-  replace: (token: MatchToken, origin: string) => string
+  replace: (token: MatchToken, origin: string, ext?: VueExtType) => string
 ) {
   const originSfcDescriptor = parse(code).descriptor
   const sfcDescriptor = cloneDeep(originSfcDescriptor)
@@ -15,14 +16,13 @@ export function TransformVue(
   const tokens: MatchToken[] = []
 
   if (sfcDescriptor.template) {
-    const transform = TransformHTML(sfcDescriptor.template.content, replace)
-    const t = transform?.tokens ?? []
-    tokens.push(...t)
-    sfcDescriptor.template.content = replaceI18n(
+    const transform = TransformHTML(
       sfcDescriptor.template.content,
-      t,
-      replace
+      replace,
+      'vueTemplate'
     )
+    tokens.push(...transform!.tokens)
+    sfcDescriptor.template.content = transform!.result
   }
 
   if (sfcDescriptor.script) {
@@ -31,15 +31,11 @@ export function TransformVue(
     const transform = TransformScript(
       sfcDescriptor.script.content,
       type,
-      replace
+      replace,
+      'vueScript'
     )
-    const t = transform?.tokens ?? []
-    tokens.push(...t)
-    sfcDescriptor.script.content = replaceI18n(
-      sfcDescriptor.script.content,
-      t,
-      replace
-    )
+    tokens.push(...transform!.tokens)
+    sfcDescriptor.script.content = transform!.result
   }
 
   if (sfcDescriptor.scriptSetup) {
@@ -48,15 +44,11 @@ export function TransformVue(
     const transform = TransformScript(
       sfcDescriptor.scriptSetup.content,
       type,
-      replace
+      replace,
+      'vueSetup'
     )
-    const t = transform?.tokens ?? []
-    tokens.push(...t)
-    sfcDescriptor.scriptSetup.content = replaceI18n(
-      sfcDescriptor.scriptSetup.content,
-      t,
-      replace
-    )
+    tokens.push(...transform!.tokens)
+    sfcDescriptor.scriptSetup.content = transform!.result
   }
 
   const newCode = compile(sfcDescriptor)

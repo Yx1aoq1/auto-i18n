@@ -4,6 +4,8 @@ export const TRANSLATE_MODES = ['vue', 'react', 'angular', undefined] as const
 
 export const KEY_STYLE = ['flat', 'nested'] as const
 
+export const VUE_TYPES = ['vueTemplate', 'vueScript', 'vueSetup'] as const
+
 export const SourceLangKey = {
   ZH: 'zh-cn',
   EN: 'en',
