@@ -1,38 +1,35 @@
-import { ensureDirectoryExistence } from '@/utils'
-import fs from 'fs'
-import { I18nResource } from '@/types'
+import { File } from '@/utils'
 
 export abstract class Parser {
-  protected languageIds: string | string[]
-  protected supportedExts: string | string[]
-  protected supportedExtsRegex: RegExp
+  abstract readonly id: string
+
+  private supportedExtsRegex: RegExp
+
+  readonly readonly: boolean = false
 
   constructor(
-    languageIds: string | string[],
-    supportedExts: string | string[]
+    public readonly languageIds: string[],
+    public readonly supportedExts: string
   ) {
-    this.languageIds = languageIds
-    this.supportedExts = supportedExts
     this.supportedExtsRegex = new RegExp(`.?(${this.supportedExts})$`)
   }
 
-  supports(ext: string): boolean {
+  supports(ext: string) {
     return !!ext.toLowerCase().match(this.supportedExtsRegex)
   }
 
-  async load(filepath: string): Promise<I18nResource> {
-    const raw = fs.readFileSync(filepath, 'utf-8')
+  async load(filepath: string): Promise<object> {
+    const raw = await File.read(filepath)
     if (!raw) return {}
     return await this.parse(raw)
   }
 
-  async save(filepath: string, object: I18nResource): Promise<void> {
+  async save(filepath: string, object: object) {
     const text = await this.dump(object)
-    ensureDirectoryExistence(filepath)
-    fs.writeFileSync(filepath, text)
+    await File.write(filepath, text)
   }
 
-  abstract parse(text: string): Promise<I18nResource> | I18nResource
+  abstract parse(text: string): Promise<object>
 
-  abstract dump(object: I18nResource): Promise<string> | string
+  abstract dump(object: object): Promise<string>
 }

@@ -1,6 +1,4 @@
 import { Parser } from './base'
-import { I18nResource } from '@/types'
-
 export class JsonParser extends Parser {
   id = 'json'
 
@@ -13,7 +11,7 @@ export class JsonParser extends Parser {
     return JSON.parse(text)
   }
 
-  async dump(object: I18nResource) {
+  async dump(object: object) {
     const indent = 2
     return `${JSON.stringify(object, null, indent)}\n`
   }

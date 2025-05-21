@@ -17,9 +17,12 @@
     "format:check": "prettier --check \"src/**/*.ts\""
   },
   "dependencies": {
-    "commander": "^11.1.0"
+    "commander": "^11.1.0",
+    "fs-extra": "^11.3.0",
+    "iconv-lite": "^0.6.3"
   },
   "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.24",
     "@typescript-eslint/eslint-plugin": "^7.1.0",
