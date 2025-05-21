@@ -1,5 +1,5 @@
 // export * from './common'
-export * from './file'
+export * from './fs'
 export * from './logger'
 export * from './pathMatcher'
 export * from './changeCase'

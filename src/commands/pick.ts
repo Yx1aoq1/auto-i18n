@@ -1,11 +1,10 @@
 import fs from 'fs'
 import { Command } from 'commander'
-import { pickI18n } from '@/pickers/utils'
 import { Translator } from '@/plugins/Tanslator'
 
 export default (program: Command) => {
   program
-    .command('scan <filepath> [namespace]')
+    .command('pick <filepath> [namespace]')
     .description('对<filepath>文件进行中文提取，提取至[namespace]文件中')
     .option('-a, --auto', '是否自动提取namespace', false)
     .action(async (filepath, namespace, { auto }) => {
@@ -16,6 +15,7 @@ export default (program: Command) => {
         logger.error(`${filepath}文件或文件夹不存在`)
         process.exit()
       }
+
       const translator = await Translator.create()
 
       translator.translate(filepath, { namespace })

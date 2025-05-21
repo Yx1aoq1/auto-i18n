@@ -1,11 +1,15 @@
-import { isMatchLang, MatchToken, pickI18n } from './utils'
+import { isMatchLang, MatchToken, pickI18n, replaceI18n } from './utils'
 import { parseHTML } from '@/vendor/parseHTML'
 
-export function HtmlPicker(html?: string) {
+export function TransformHTML(
+  code: string | undefined,
+  replace: (token: MatchToken, origin: string) => string
+) {
   const tokens: MatchToken[] = []
-  if (!html) return []
 
-  parseHTML(html, {
+  if (!code) return
+
+  parseHTML(code, {
     expectHTML: true,
     shouldKeepComment: false,
     start(tag: any, attrs: any[]) {
@@ -34,5 +38,12 @@ export function HtmlPicker(html?: string) {
       }
     },
   })
-  return tokens
+
+  const newCode = replaceI18n(code, tokens, replace)
+
+  return {
+    origin: code,
+    tokens,
+    result: newCode,
+  }
 }

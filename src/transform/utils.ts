@@ -46,26 +46,33 @@ export function isMatchLang(text: string) {
   return new RegExp(REGEX_MAP[lang]).test(text)
 }
 
-export type MatchTokenType = 'text' | 'string' | 'template' | 'chars'
+type BaseToken = {
+  text: string
+  start: number
+  end: number
+}
 
-export type MatchToken =
-  | {
-      type: MatchTokenType
-      text: string
-      start: number
-      end: number
-      origin?: string
-      params?: ExpressionParam[]
-      tokens?: MatchToken[]
-    }
-  | {
-      type: 'attribute'
-      name: string
-      value: string
-      start: number
-      end: number
-      tokens: MatchToken[]
-    }
+type NormalToken = BaseToken & {
+  type: 'text' | 'string' | 'template'
+  params?: ExpressionParam[]
+  tokens?: MatchToken[]
+}
+
+type AttributeToken = {
+  type: 'attribute'
+  name: string
+  value: string
+  start: number
+  end: number
+  tokens: MatchToken[]
+}
+
+type CharToken = BaseToken & {
+  type: 'chars'
+  tokens: MatchToken[]
+}
+
+export type MatchToken = NormalToken | AttributeToken | CharToken
 
 export interface ExpressionParam {
   expression: string | null
@@ -166,7 +173,6 @@ export function pickI18n(template: string, offset = 0) {
             text: matchText,
             start: offset + originStart,
             end: offset + originEnd,
-            origin: originText,
           })
         }
         // ES6模版语法匹配
@@ -186,7 +192,6 @@ export function pickI18n(template: string, offset = 0) {
             start: offset + originStart,
             end: offset + originEnd,
             params,
-            origin: originText,
           })
           params = []
         }
@@ -259,7 +264,6 @@ export function pickI18n(template: string, offset = 0) {
         text: char,
         start: offset + charStart,
         end: offset + charStart + char.length - 1,
-        origin: char,
       })
     }
   }
@@ -330,7 +334,6 @@ export function pickI18n(template: string, offset = 0) {
       start: mergedStart,
       end: mergedEnd,
       params,
-      origin: mergedText,
     })
     mergedIdx = tokens.length - 1
     // 清空原来params里的内容
@@ -346,18 +349,18 @@ export function pickI18n(template: string, offset = 0) {
 export function replaceI18n<K extends { start: number; end: number }>(
   origin: string,
   tokens: K[],
-  callback: (item: K) => string
+  callback: (item: K, origin: string) => string
 ) {
   let code = origin
   let offset = 0
   // logger.debug('origin code:', origin)
   tokens.forEach((token) => {
-    // logger.debug(`start: ${origin[token.start]}, end: ${origin[token.end]}`)
+    const originText = origin.slice(token.start, token.end + 1)
     code = replace(
       code,
       token.start + offset,
       token.end + offset,
-      callback(token)
+      callback(token, originText)
     )
     offset = code.length - origin.length
   })

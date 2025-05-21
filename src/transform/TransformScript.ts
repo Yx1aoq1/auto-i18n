@@ -3,7 +3,7 @@ import traverse from '@babel/traverse'
 import generate from '@babel/generator'
 import { NodePath } from '@babel/traverse'
 import * as t from '@babel/types'
-import { isMatchLang, MatchToken, pickI18n } from './utils'
+import { isMatchLang, MatchToken, pickI18n, replaceI18n } from './utils'
 
 type PluginConfig = parser.ParserPlugin
 
@@ -27,7 +27,13 @@ function parseToAST(code: string, type: string) {
   })
 }
 
-export function ScriptPicker(code: string, type: string) {
+export function TransformScript(
+  code: string | undefined,
+  type: string,
+  replace: (token: MatchToken, origin: string) => string
+) {
+  if (!code) return
+
   const ast = parseToAST(code, type)
   const tokens: MatchToken[] = []
   let matchEnd = 0
@@ -159,5 +165,11 @@ export function ScriptPicker(code: string, type: string) {
     },
   })
 
-  return tokens
+  const newCode = replaceI18n(code, tokens, replace)
+
+  return {
+    origin: code,
+    tokens,
+    result: newCode,
+  }
 }

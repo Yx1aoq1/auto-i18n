@@ -41,7 +41,7 @@ export function isDirectory(filepath: string): boolean {
  * @param {string | Buffer} buffer
  * @param {fs.WriteFileOptions} options
  */
-export function exportFile(
+export function writeFile(
   filepath: string,
   buffer: string | Buffer,
   options?: fs.WriteFileOptions
