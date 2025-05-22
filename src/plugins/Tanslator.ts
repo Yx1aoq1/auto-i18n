@@ -81,9 +81,10 @@ export class Translator {
         }))
         expression = params
           .map((item) => {
-            if (!item.value) return item.name
+            const name = item.name.trim()
+            if (!item.value) return name
             // 如果是复杂表达式，直接使用原始表达式
-            return `${item.name}: ${item.value}`
+            return `${name}: ${item.value}`
           })
           .join(', ')
       }
