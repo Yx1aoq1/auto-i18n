@@ -86,7 +86,7 @@ interface KeywordStackItem {
   pos: number
 }
 
-export function pickI18n(template: string, offset = 0) {
+export function pickI18n(template: string) {
   const scanner = new Scanner(template)
   // 返回结果
   const tokens: MatchToken[] = []
@@ -115,7 +115,7 @@ export function pickI18n(template: string, offset = 0) {
     isMatchLang(words) &&
     (!scanner.keyword || !['{{', '{'].includes(scanner.keyword))
   ) {
-    matchLang(template, offset)
+    matchLang(template, 0)
     return tokens
   }
   // 遍历字符串
@@ -156,11 +156,11 @@ export function pickI18n(template: string, offset = 0) {
     }
     if (matched) {
       const matchStart = matched.pos + matched.keyword.length
-      const matchEnd = pos - keyword.length
+      const matchEnd = pos - 1
       // 截取关键字直接的文案内容
       const matchText = template.slice(matchStart, matchEnd + 1)
       const originStart = matched.pos
-      const originEnd = pos
+      const originEnd = pos + keyword.length - 1
       // 包含关键字的原始文案内容
       const originText = template.slice(originStart, originEnd + 1)
       if (isMatchLang(originText) && !isExp) {
@@ -169,8 +169,8 @@ export function pickI18n(template: string, offset = 0) {
           tokens.push({
             type: 'string',
             text: matchText,
-            start: offset + originStart,
-            end: offset + originEnd,
+            start: originStart,
+            end: originEnd,
           })
         }
         // ES6模版语法匹配
@@ -187,8 +187,8 @@ export function pickI18n(template: string, offset = 0) {
           tokens.push({
             type: 'template',
             text,
-            start: offset + originStart,
-            end: offset + originEnd,
+            start: originStart,
+            end: originEnd,
             params,
           })
           params = []
@@ -225,6 +225,8 @@ export function pickI18n(template: string, offset = 0) {
     }
     if (['\r\n', '\n', '\r'].includes(keyword)) {
       mergeTokens()
+      // 清空原来params里的内容
+      params = []
     }
     scanner.scan()
     words = scanner.scanUtil(KEYWORD)
@@ -257,8 +259,8 @@ export function pickI18n(template: string, offset = 0) {
     tokens.push({
       type: 'text',
       text: char,
-      start: offset + charStart,
-      end: offset + charStart + char.length - 1,
+      start: charStart,
+      end: charStart + char.length - 1,
     })
   }
   // 匹配
@@ -296,21 +298,11 @@ export function pickI18n(template: string, offset = 0) {
     if (!tokens.some((item, idx) => item.type === 'text' && idx > mergedIdx))
       return
     // 合并token和params方便计算最小start和最大end
-    const combined = [
-      ...tokens.slice(mergedIdx + 1),
-      ...params.map((p) => ({
-        ...p,
-        start: offset + p.start,
-        end: offset + p.end,
-      })),
-    ]
+    const combined = [...tokens.slice(mergedIdx + 1), ...params]
     // 计算 start 和 end 范围
     const mergedStart = Math.min(...combined.map((item) => item.start))
     const mergedEnd = Math.max(...combined.map((item) => item.end))
-    const mergedText = template.slice(
-      mergedStart - offset,
-      mergedEnd + 1 - offset
-    )
+    const mergedText = template.slice(mergedStart, mergedEnd + 1)
     const text = replaceI18n(
       mergedText,
       params.map((p) => ({

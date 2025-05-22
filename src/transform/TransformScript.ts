@@ -93,7 +93,13 @@ export function TransformScript(
       )
 
       if (hasChineseText) {
-        tokens.push(...pickI18n(generate(path.node).code, path.node.start))
+        tokens.push(
+          ...pickI18n(generate(path.node).code).map((t) => ({
+            ...t,
+            start: t.start + path.node.start!,
+            end: t.end + path.node.start!,
+          }))
+        )
         matchEnd = path.node.end
       }
     },
