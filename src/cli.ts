@@ -11,7 +11,7 @@ program.version(version).description('Auto I18n Tool')
 // 注册命令
 commands(program)
 
-function run(argv: string[]) {
+export function run(argv: string[]) {
   // 如果没有其他命令的话
   if (!argv[2]) {
     program.help()
@@ -19,5 +19,3 @@ function run(argv: string[]) {
   }
   program.parse(argv)
 }
-
-run(process.argv)

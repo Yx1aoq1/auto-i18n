@@ -1,7 +1,7 @@
 import {
   camelCase,
   constantCase,
-  kebabCase,
+  paramCase,
   pascalCase,
   snakeCase,
 } from 'change-case'
@@ -21,7 +21,7 @@ export function changeCase(str: string, style: CaseStyles) {
     case 'ALL_CAPS':
       return constantCase(str)
     case 'kebab-case':
-      return kebabCase(str)
+      return paramCase(str)
     case 'camelCase':
       return camelCase(str)
     case 'PascalCase':
