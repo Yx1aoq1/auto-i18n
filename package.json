@@ -9,7 +9,7 @@
   "scripts": {
     "start": "nodemon --watch src --exec npm run command",
     "build": "tsc",
-    "command": "ts-node  -r tsconfig-paths/register --files ./src/cli.ts pick ./example/react/Simple.tsx",
+    "command": "ts-node  -r tsconfig-paths/register --files ./src/cli.ts replace ./example/react/Simple.tsx",
     "test": "jest",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",

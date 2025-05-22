@@ -36,7 +36,6 @@ export class Translator {
       ext?: VueExtType
     ) => {
       const localeKey = this.localeLoader.findMatchLocaleKey(text, namespace)
-      logger.info(`Match: ${text} --> ${localeKey}`)
       const key = `'${localeKey}'${expression ? `, ${expression}` : ''}`
 
       if (typeof Global.i18nFuncTemp === 'function') {
@@ -94,9 +93,10 @@ export class Translator {
           )
           break
         case 'attribute':
-          const value = replaceI18n(token.value, token.tokens, (t, o) =>
-            replace(t, o, ext)
-          )
+          const value = replaceI18n(token.value, token.tokens, (t, o) => {
+            if (t.type === 'text') t.type = 'string'
+            return replace(t, o, ext)
+          })
           if (['jsx', 'tsx'].includes(extname)) {
             replaceValue = `${token.name}={${value}}`
           }
@@ -117,9 +117,9 @@ export class Translator {
             expression,
             ext
           )
+          logger.info(`Match: ${token.text} --> ${replaceValue}`)
           break
       }
-
       return replaceValue
     }
 

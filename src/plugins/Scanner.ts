@@ -20,7 +20,7 @@ export class Scanner {
     }
     this.keyword = stopTag
     const pos_backup = this.pos
-    while (stopTag && !this.eos() && this.tail.indexOf(stopTag) !== 0) {
+    while (!this.eos() && (!stopTag || this.tail.indexOf(stopTag) !== 0)) {
       this.pos++
       this.tail = this.templateStr.substring(this.pos)
     }
