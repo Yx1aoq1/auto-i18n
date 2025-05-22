@@ -17,10 +17,14 @@ export function TransformHTML(
     start(tag: any, attrs: any[]) {
       if (attrs && attrs.length) {
         attrs.map((attr) => {
+          const origin = code.slice(attr.start, attr.end)
+          // 修正起始位置
+          const start = origin.indexOf(attr.name)
           if (isMatchLang(attr.value)) {
             tokens.push({
               type: 'attribute',
               ...attr,
+              start: attr.start + start,
               end: attr.end - 1,
               tokens: pickI18n(attr.value),
             })
