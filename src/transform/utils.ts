@@ -160,7 +160,7 @@ export function pickI18n(template: string) {
       // 截取关键字直接的文案内容
       const matchText = template.slice(matchStart, matchEnd + 1)
       const originStart = matched.pos
-      const originEnd = pos + keyword.length - 1
+      const originEnd = pos - 1 + keyword.length
       // 包含关键字的原始文案内容
       const originText = template.slice(originStart, originEnd + 1)
       if (isMatchLang(originText) && !isExp) {
