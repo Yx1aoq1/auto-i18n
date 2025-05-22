@@ -1,12 +1,6 @@
 import fs from 'fs'
 import path from 'path'
 
-const cwd = process.cwd()
-
-export function getExtname(path: string) {
-  return path.slice(((path.lastIndexOf('.') - 1) >>> 0) + 2)
-}
-
 export function getFilenameWithoutExt(path: string) {
   const files = path.split(/\/|\\/)
   const filename = files.length ? files[files.length - 1] : ''
@@ -33,22 +27,6 @@ export function ensureDirectoryExistence(filePath: string): boolean {
  */
 export function isDirectory(filepath: string): boolean {
   return fs.statSync(filepath).isDirectory()
-}
-
-/**
- * 导出文件到指定位置
- * @param {string} filepath
- * @param {string | Buffer} buffer
- * @param {fs.WriteFileOptions} options
- */
-export function writeFile(
-  filepath: string,
-  buffer: string | Buffer,
-  options?: fs.WriteFileOptions
-): void {
-  // 确保目录存在
-  ensureDirectoryExistence(filepath)
-  return fs.writeFileSync(filepath, buffer, options)
 }
 
 /**

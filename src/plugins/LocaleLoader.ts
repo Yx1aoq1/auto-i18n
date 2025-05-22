@@ -1,6 +1,5 @@
 import fg from 'fast-glob'
 import path from 'path'
-import fs from 'fs'
 import {
   uniq,
   set,
@@ -12,8 +11,8 @@ import {
   filter,
   assign,
 } from 'lodash'
-import { Global } from '.'
-import { flatten, unflatten, getRandomStr, getExtname } from '@/utils'
+import { Global, File } from '.'
+import { flatten, unflatten, getRandomStr } from '@/utils'
 import { LocaleData, ParsedFile } from '@/types'
 import { CONFIG_FILE_NAME } from '@/constants'
 
@@ -113,14 +112,6 @@ export class LocaleLoader {
     })
     for (const relative of files) {
       await this.loadFile(searchingPath, relative)
-    }
-  }
-
-  private getMtime(filepath: string) {
-    try {
-      return fs.statSync(filepath).mtimeMs
-    } catch {
-      return 0
     }
   }
 
@@ -253,7 +244,7 @@ export class LocaleLoader {
       return
     }
     const dirpath = file.dirpath
-    const ext = getExtname(file.filepath)
+    const ext = File.getExtname(file.filepath)
     if (!Global.pathMatcher) {
       logger.error(`${CONFIG_FILE_NAME}中未定义"pathMatcher"`)
       return

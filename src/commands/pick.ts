@@ -18,7 +18,7 @@ export default (program: Command) => {
 
       const translator = await Translator.create()
 
-      translator.translate(filepath, { namespace })
+      await translator.translate(filepath, { namespace })
 
       logger.success('翻译已导出至相应目录，请自行检查代码语法是否正确')
     })

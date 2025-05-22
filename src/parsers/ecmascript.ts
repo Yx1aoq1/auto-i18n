@@ -1,7 +1,6 @@
 import { Parser } from './base'
-import path from 'path'
-import fs from 'fs'
-import os from 'os'
+import { File } from '@/plugins'
+import * as esbuild from 'esbuild'
 
 const LanguageIds = {
   js: 'javascript',
@@ -34,18 +33,19 @@ export class EcmascriptParser extends Parser {
   }
 
   async load(filepath: string) {
-    const raw = fs.readFileSync(filepath, 'utf-8')
-    const tmpPath = path.join(os.tmpdir(), `./temp_${+new Date()}.js`)
-    // 由于运行时不允许es6语法，只能替换一下再重新读取
-    fs.writeFileSync(
-      tmpPath,
-      raw.replace('export default', 'exports.default ='),
-      { flag: 'w' }
-    )
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const obj = require(tmpPath).default
-    // 删除文件
-    fs.unlinkSync(tmpPath)
-    return obj
+    const raw = await File.read(filepath)
+
+    // 使用 esbuild 转换代码
+    const result = await esbuild.transform(raw, {
+      loader: this.id === 'ts' ? 'ts' : 'js',
+      format: 'cjs',
+    })
+
+    // 创建一个临时的 CommonJS 模块
+    const tempModule: { exports: { default?: object } } = { exports: {} }
+    const fn = new Function('module', 'exports', result.code)
+    fn(tempModule, tempModule.exports)
+
+    return tempModule.exports.default ?? {}
   }
 }

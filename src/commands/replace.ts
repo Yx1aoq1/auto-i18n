@@ -19,7 +19,7 @@ export default (program: Command) => {
 
       const translator = await Translator.create()
 
-      translator.translate(filepath, { namespace, replace: true })
+      await translator.translate(filepath, { namespace, replace: true })
 
       logger.success('翻译已替换，请自行检查代码语法是否正确')
     })

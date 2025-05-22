@@ -1,10 +1,10 @@
-import { getExtname, isDirectory, travelDir, writeFile } from '@/utils'
+import { isDirectory, travelDir } from '@/utils'
 import { Global, LocaleLoader } from '.'
-import fs from 'fs'
 import { MatchToken, replaceI18n } from '@/transform/utils'
 import { TransformHTML, TransformScript, TransformVue } from '@/transform'
 import { VueExtType } from '@/types'
 import { template } from 'lodash'
+import { File } from '.'
 
 export class Translator {
   static async create() {
@@ -24,8 +24,8 @@ export class Translator {
   }
 
   private parse(filepath: string, namespace?: string) {
-    const extname = getExtname(filepath)
-    const code = fs.readFileSync(filepath, 'utf-8')
+    const extname = File.getExtname(filepath)
+    const code = File.readSync(filepath)
     if (this.isIgnore(code)) return
 
     const toI18nFunc = (
@@ -143,7 +143,7 @@ export class Translator {
     opt: { namespace?: string; replace?: boolean }
   ) {
     const { namespace, replace = false } = opt
-    const extname = getExtname(filepath)
+    const extname = File.getExtname(filepath)
     if (extname && !Global.enableTransExts.includes(extname)) {
       logger.warn(`暂不支持.${extname}的文件，已跳过文件 ${filepath} `)
       return
@@ -151,7 +151,7 @@ export class Translator {
     logger.info(`开始处理 ${filepath} ...`)
     const result = this.parse(filepath, namespace)
     if (result && replace) {
-      writeFile(filepath, result?.result)
+      File.writeSync(filepath, result?.result)
     }
   }
 

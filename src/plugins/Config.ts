@@ -7,6 +7,7 @@ import { CaseStyles } from '@/utils'
 import { MatchToken } from '@/transform'
 
 interface I18nFuncParams {
+  text: string
   key: string
   extname: string
   type: MatchToken['type']
@@ -17,10 +18,10 @@ const cwd = process.cwd()
 
 export class Config {
   // 私有缓存变量
-  static #configCache: Record<string, any> | null = null
+  static #configCache: Record<string, unknown> | null = null
 
   // 私有加载方法，只加载一次
-  private static loadConfig(): Record<string, any> {
+  private static loadConfig(): Record<string, unknown> {
     if (this.#configCache) return this.#configCache
 
     const configPath = path.join(cwd, CONFIG_FILE_NAME)
@@ -34,12 +35,12 @@ export class Config {
     delete require.cache[require.resolve(configPath)]
     this.#configCache = require(configPath)
 
-    return this.#configCache as Record<string, any>
+    return this.#configCache as Record<string, unknown>
   }
 
-  private static getConfig<T = any>(key: string): T | undefined {
+  private static getConfig<T = unknown>(key: string): T | undefined {
     const config = this.loadConfig()
-    return config[key]
+    return config[key] as T | undefined
   }
 
   // 默认匹配识别的语言
@@ -57,7 +58,7 @@ export class Config {
 
   // locales配置的文件夹路径
   static get localesPaths(): string[] | undefined {
-    const paths = this.getConfig('localesPaths')
+    const paths = this.getConfig<string | string[]>('localesPaths')
     let localesPaths: string[]
     if (!paths) return
     else if (typeof paths === 'string') localesPaths = paths.split(',')
@@ -99,8 +100,8 @@ export class Config {
   }
 
   // 命名空间风格，如大写驼峰/小写驼峰等，会自动转换
-  static get namespaceCaseStyle() {
-    return this.getConfig<CaseStyles>('namespaceCaseStyle') ?? 'default'
+  static get caseStyle() {
+    return this.getConfig<CaseStyles>('caseStyle') ?? 'default'
   }
 
   // 国际化的i18n方法 如 i18n.t(${key})

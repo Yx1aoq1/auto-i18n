@@ -11,7 +11,7 @@ export class Global {
   static sourceLanguage = Config.sourceLanguage
 
   static enabledParsers = AvailableParsers.filter((i) =>
-    (Config.enabledParsers || ['js', 'json']).includes(i.id)
+    (Config.enabledParsers || ['js', 'ts', 'json']).includes(i.id)
   )
 
   static localesPaths = Config.localesPaths
@@ -45,7 +45,7 @@ export class Global {
 
   static expressionTmp = Config.expressionTmp
 
-  static namespaceCaseStyle = Config.namespaceCaseStyle
+  static caseStyle = Config.caseStyle
 
   static i18nFuncTemp = Config.i18nFuncTemp
 }
