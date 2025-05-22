@@ -112,8 +112,8 @@ export function pickI18n(template: string, offset = 0) {
   words = scanner.scanUtil(KEYWORD)
   // 没有查询到任何关键字或者关键字前包含中文，都按全段文字为中文处理
   if (
-    !scanner.keyword ||
-    (isMatchLang(words) && !['{{', '{'].includes(scanner.keyword))
+    isMatchLang(words) &&
+    (!scanner.keyword || !['{{', '{'].includes(scanner.keyword))
   ) {
     matchLang(template, offset)
     return tokens

@@ -1,7 +1,7 @@
 export class Scanner {
   pos: number = 0
   tail: string = ''
-  keyword: string | null = null
+  keyword: string = ''
   constructor(public readonly templateStr: string) {
     this.tail = templateStr
   }
@@ -13,7 +13,7 @@ export class Scanner {
     }
   }
 
-  scanUtil(stopTag: string | string[] | null): string {
+  scanUtil(stopTag: string | string[]): string {
     if (Array.isArray(stopTag)) {
       this.keyword = this.findNearestKeyword(stopTag)
       return this.scanUtil(this.keyword)
@@ -31,16 +31,16 @@ export class Scanner {
     return this.pos >= this.templateStr.length
   }
 
-  findKeywordPos(keyword: string | null) {
+  findKeywordPos(keyword: string) {
     if (typeof keyword === 'string') {
       return this.tail.indexOf(keyword)
     }
     return this.pos
   }
 
-  findNearestKeyword(keys: string[]): string | null {
-    if (!keys.length) return null
-    let nearest: string | null = null
+  findNearestKeyword(keys: string[]): string {
+    if (!keys.length) return ''
+    let nearest: string = ''
     let min = Infinity
     keys.forEach((keyword) => {
       const pos = this.findKeywordPos(keyword)

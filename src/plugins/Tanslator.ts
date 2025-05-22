@@ -36,7 +36,7 @@ export class Translator {
       ext?: VueExtType
     ) => {
       const localeKey = this.localeLoader.findMatchLocaleKey(text, namespace)
-      const key = `'${localeKey}'${expression ? `, ${expression}` : ''}`
+      const key = `'${localeKey}'${expression ? `, { ${expression} }` : ''}`
 
       if (typeof Global.i18nFuncTemp === 'function') {
         return Global.i18nFuncTemp({
@@ -48,22 +48,23 @@ export class Translator {
         })
       }
 
-      const compiled = template(Global.i18nFuncTemp)
-      const [context, func] = compiled({ key }).split('.')
+      const compiled = template(Global.i18nFuncTemp)({ key })
+      const [, context, func] =
+        compiled.match(/^([^.(]+)\.([^(]+\(.+\))$/) || []
 
       if (ext === 'vueTemplate' && type === 'text') {
-        return `{{ ${func ?? context} }}`
+        return `{{ ${func ?? context ?? compiled} }}`
       }
       if (ext === 'vueScript') {
-        return `this.${func ?? context}`
+        return `this.${func ?? context ?? compiled}`
       }
       if (['jsx', 'tsx'].includes(extname) && type === 'text') {
-        return `{${func ?? context}}`
+        return `{${func ?? context ?? compiled}}`
       }
-      if (['ts', 'js'].includes(extname)) {
-        return func ? `${context}.${func}` : context
+      if (['ts', 'js'].includes(extname) || ext === 'vueSetup') {
+        return func ? `${context}.${func}` : (context ?? compiled)
       }
-      return `${func ?? context}`
+      return `${func ?? context ?? compiled}`
     }
 
     const replace = (token: MatchToken, origin: string, ext?: VueExtType) => {
