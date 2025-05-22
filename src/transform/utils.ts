@@ -2,9 +2,7 @@ import { REGEX_MAP } from '@/constants'
 import { Scanner, Global } from '@/plugins'
 import { replace } from '@/utils'
 
-// const chinese = /\S*[^\x00-\xff]+\S*/g
 const vname = /^[a-zA-Z\$_][a-zA-Z\d_]*$/
-// const variable = /\{\{?([^{}]+)\}?\}/g
 
 // 需要查找的关键字
 const KEYWORD = [
@@ -43,7 +41,7 @@ export function isMatchLang(text: string) {
   if (!REGEX_MAP[lang]) {
     throw new Error(`暂不支持 ${lang} 语言的替换`)
   }
-  return new RegExp(REGEX_MAP[lang]).test(text)
+  return REGEX_MAP[lang].test(text)
 }
 
 type BaseToken = {
@@ -254,18 +252,14 @@ export function pickI18n(template: string, offset = 0) {
 
   // 匹配中文
   function matchLang(string: string, start: number) {
-    const langReg = `/\\S*${REGEX_MAP[Global.sourceLanguage as keyof typeof REGEX_MAP]}+\\S*/g`
-    const zhMatch = string.match(langReg)
-    while (zhMatch && zhMatch.length) {
-      const char = zhMatch.shift() as string
-      const charStart = start + string.indexOf(char)
-      tokens.push({
-        type: 'text',
-        text: char,
-        start: offset + charStart,
-        end: offset + charStart + char.length - 1,
-      })
-    }
+    const char = string.trim()
+    const charStart = start + string.indexOf(char)
+    tokens.push({
+      type: 'text',
+      text: char,
+      start: offset + charStart,
+      end: offset + charStart + char.length - 1,
+    })
   }
   // 匹配
   function matchPairKeyword(keyword: string, pos: number) {
