@@ -60,10 +60,10 @@ export class Translator {
       if (['jsx', 'tsx'].includes(extname) && type === 'text') {
         return `{${func ?? context}}`
       }
-      if (type === 'string') {
-        return `${func ?? context}`
+      if (['ts', 'js'].includes(extname)) {
+        return func ? `${context}.${func}` : context
       }
-      return func ? `${context}.${func}` : context
+      return `${func ?? context}`
     }
 
     const replace = (token: MatchToken, origin: string, ext?: VueExtType) => {
@@ -93,10 +93,9 @@ export class Translator {
           )
           break
         case 'attribute':
-          const value = replaceI18n(token.value, token.tokens, (t, o) => {
-            if (t.type === 'text') t.type = 'string'
-            return replace(t, o, ext)
-          })
+          const value = replaceI18n(token.value, token.tokens, (t, o) =>
+            replace(t, o, ext)
+          )
           if (['jsx', 'tsx'].includes(extname)) {
             replaceValue = `${token.name}={${value}}`
           }

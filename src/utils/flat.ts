@@ -13,15 +13,15 @@ export function flatten(
   res: Record<string, string> = {},
   isArray = false
 ) {
-  for (let [k, v] of Object.entries(obj)) {
+  for (const [k, v] of Object.entries(obj)) {
     if (Array.isArray(v)) {
-      let tmp = isArray ? key + '[' + k + ']' : key + k
+      const tmp = isArray ? key + '[' + k + ']' : key + k
       flatten(v, tmp, res, true)
     } else if (typeof v === 'object') {
-      let tmp = isArray ? key + '[' + k + '].' : key + k + '.'
+      const tmp = isArray ? key + '[' + k + '].' : key + k + '.'
       flatten(v, tmp, res)
     } else {
-      let tmp = isArray ? key + '[' + k + ']' : key + k
+      const tmp = isArray ? key + '[' + k + ']' : key + k
       res[tmp] = v
     }
   }
