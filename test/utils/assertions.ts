@@ -6,7 +6,6 @@ import { template as _template } from 'lodash' // 引入lodash的template方法
  * @param expectedText 期望的翻译文本
  * @param filepath Vue文件路径
  * @param templateString 可选的模板字符串，默认为 "{{ $t('${translationKey}') }}"
- * @param validateContent 可选的内容验证函数，默认使用Vue编译器验证
  */
 export const assertI18nReplacement = (
   capturedFileContents: Record<string, string>,
