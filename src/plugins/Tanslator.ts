@@ -48,7 +48,10 @@ export class Translator {
         })
       }
 
-      const compiled = template(Global.i18nFuncTemp)({ key })
+      const compiled = template(Global.i18nFuncTemp, {
+        interpolate: /{([\s\S]+?)}/g,
+      })({ key })
+
       const [, context, func] =
         compiled.match(/^([^.(]+)\.([^(]+\(.+\))$/) || []
 

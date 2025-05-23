@@ -104,12 +104,12 @@ export class Config {
     return this.getConfig<CaseStyles>('caseStyle') ?? 'default'
   }
 
-  // 国际化的i18n方法 如 i18n.t(${key})
+  // 国际化的i18n方法 如 i18n.t({key})
   static get i18nFuncTemp() {
     return (
       this.getConfig<string | ((opt: I18nFuncParams) => string)>(
         'i18nFuncTemp'
-      ) ?? 'i18n.$t(${key})'
+      ) ?? 'i18n.$t({key})'
     )
   }
 }
