@@ -30,18 +30,6 @@ const REACT_SCRIPT_DATA_TEMPLATE = `const Example: React.FC = () => {
 }
 `
 
-export const getReactConfig = (lang: string) => {
-  return {
-    // 语言配置
-    sourceLanguage: lang,
-    localesPaths: ['example/locales'],
-    namespace: false,
-    pathMatcher: '{locale}.{ext}',
-    expressionTmp: '{{expression}}',
-    i18nFuncTemp: 'i18n.t({key})',
-  }
-}
-
 const compiledReactDivTemplate = _template(REACT_DIV_TEMPLATE, {
   interpolate: /{{([\s\S]+?)}}/g,
 })

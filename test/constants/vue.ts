@@ -36,16 +36,6 @@ const text = {{text}}
 </script>
 `
 
-export const getVueConfig = (lang: string) => {
-  return {
-    // 语言配置
-    sourceLanguage: lang,
-    localesPaths: ['example/locales'],
-    namespace: false,
-    pathMatcher: '{locale}.{ext}',
-  }
-}
-
 const compiledVueDivTemplate = _template(VUE_DIV_TEMPLATE, {
   interpolate: /{([\s\S]+?)}/g,
 })
