@@ -112,4 +112,14 @@ export class Config {
       ) ?? 'i18n.$t({key})'
     )
   }
+
+  static set isDebugMode(value: boolean) {
+    if (this.#configCache) {
+      this.#configCache.isDebugMode = value
+    }
+  }
+
+  static get isDebugMode() {
+    return this.getConfig<boolean>('isDebugMode') ?? false
+  }
 }

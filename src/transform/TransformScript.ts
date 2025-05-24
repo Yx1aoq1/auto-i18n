@@ -38,11 +38,35 @@ export function TransformScript(
 
   const ast = parseToAST(code, type)
   const tokens: MatchToken[] = []
-  let matchEnd = 0
+  const resolved: t.Node[] = []
+
+  // 检查节点是否已经被处理过
+  function isNodeResolved(path: NodePath<any>): boolean {
+    // 检查当前节点
+    if (resolved.includes(path.node)) return true
+
+    // 检查父节点链
+    let parentPath = path.parentPath
+    while (parentPath) {
+      if (resolved.includes(parentPath.node)) return true
+      parentPath = parentPath.parentPath
+    }
+
+    // 检查子节点（针对JSX父节点已处理的情况）
+    for (const node of resolved) {
+      if (t.isJSXElement(node)) {
+        const children = node.children || []
+        if (children.includes(path.node)) return true
+      }
+    }
+
+    return false
+  }
+
   traverse(ast, {
     StringLiteral(path: NodePath<t.StringLiteral>) {
       if (!path.node.start || !path.node.end) return
-      if (matchEnd > path.node.start) return
+      if (isNodeResolved(path)) return
       if (isMatchLang(path.node.value)) {
         // Check if this string is part of a JSX attribute
         const isJSXAttribute =
@@ -64,28 +88,19 @@ export function TransformScript(
             tokens: pickI18n(path.node.value),
           })
         } else {
-          // 检查是否在 JSX 表达式中，但不在 JSX 属性内
-          const isInJSXExpression = path.findParent(
-            (p) => p.type === 'JSXExpressionContainer'
-          )
-          const isInJSXAttribute = path.findParent(
-            (p) => p.type === 'JSXAttribute'
-          )
-          if (!isInJSXExpression || isInJSXAttribute) {
-            tokens.push({
-              type: 'string',
-              text: path.node.value,
-              start: path.node.start,
-              end: path.node.end - 1,
-            })
-          }
+          tokens.push({
+            type: 'string',
+            text: path.node.value,
+            start: path.node.start,
+            end: path.node.end - 1,
+          })
         }
-        matchEnd = path.node.end
+        resolved.push(path.node)
       }
     },
     TemplateLiteral(path: NodePath<t.TemplateLiteral>) {
       if (!path.node.start || !path.node.end) return
-      if (matchEnd > path.node.start) return
+      if (isNodeResolved(path)) return
       const hasChineseText = path.node.quasis.some(
         (quasi: t.TemplateElement) => {
           return isMatchLang(quasi.value.raw)
@@ -100,7 +115,7 @@ export function TransformScript(
             end: t.end + path.node.start!,
           }))
         )
-        matchEnd = path.node.end
+        resolved.push(path.node)
       }
     },
     JSXText(path: NodePath<t.JSXText>) {
@@ -115,7 +130,7 @@ export function TransformScript(
       if (!start || !end) return
 
       // 已处理过，跳过
-      if (matchEnd > start) return
+      if (isNodeResolved(path)) return
 
       // 检查相邻的 JSX 表达式节点
       const parent = path.parent as t.JSXElement
@@ -123,6 +138,9 @@ export function TransformScript(
       const currentIndex = siblings.indexOf(path.node)
       // 记录文本
       let completeText = text
+
+      // 收集需要处理的所有相邻节点
+      const processedNodes: t.Node[] = [path.node]
 
       // 向前查找相邻的 JSX 表达式
       for (let i = currentIndex - 1; i >= 0; i--) {
@@ -135,9 +153,11 @@ export function TransformScript(
           const exprText = generate(sibling).code
           completeText = exprText + completeText
           start = Math.min(start, sibling.start)
+          processedNodes.push(sibling)
         } else if (sibling.type === 'JSXText' && sibling.start) {
           completeText = sibling.value + completeText
           start = Math.min(start, sibling.start)
+          processedNodes.push(sibling)
         } else {
           break
         }
@@ -154,15 +174,19 @@ export function TransformScript(
           const exprText = generate(sibling).code
           completeText = completeText + exprText
           end = Math.max(end, sibling.end)
+          processedNodes.push(sibling)
         } else if (sibling.type === 'JSXText' && sibling.end) {
           completeText = completeText + sibling.value
           end = Math.max(end, sibling.end)
+          processedNodes.push(sibling)
         } else {
           break
         }
       }
-      // 更新 matchEnd 为实际处理的最后一个节点的结束位置
-      matchEnd = end
+
+      // 将所有处理过的节点加入到resolved数组
+      resolved.push(...processedNodes)
+
       tokens.push({
         type: 'chars',
         text: completeText,

@@ -1,5 +1,5 @@
 import { isDirectory, travelDir } from '@/utils'
-import { Global, LocaleLoader } from '.'
+import { Global, Config, LocaleLoader } from '.'
 import { MatchToken, replaceI18n } from '@/transform/utils'
 import { TransformHTML, TransformScript, TransformVue } from '@/transform'
 import { VueExtType } from '@/types'
@@ -122,7 +122,8 @@ export class Translator {
             expression,
             ext
           )
-          logger.info(`Match: ${token.text} --> ${replaceValue}`)
+          Config.isDebugMode &&
+            logger.info(`Match: ${token.text} --> ${replaceValue}`)
           break
       }
       return replaceValue
@@ -153,7 +154,7 @@ export class Translator {
       logger.warn(`暂不支持.${extname}的文件，已跳过文件 ${filepath} `)
       return
     }
-    logger.info(`开始处理 ${filepath} ...`)
+    Config.isDebugMode && logger.info(`开始处理 ${filepath} ...`)
     const result = this.parse(filepath, namespace)
     if (result && replace) {
       File.writeSync(filepath, result?.result)
@@ -171,7 +172,7 @@ export class Translator {
     } else {
       this.single(filepath, opt)
     }
-    logger.info(`开始导出翻译文件...`)
+    Config.isDebugMode && logger.info(`开始导出翻译文件...`)
     await this.localeLoader.export(opt.namespace)
   }
 }

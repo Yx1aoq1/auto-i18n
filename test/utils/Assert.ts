@@ -17,5 +17,4 @@ export const assertI18nReplacement = (
   const compiledTemplate = _template(example.result)
   const expectedPattern = compiledTemplate({ keys })
   expect(replaced).toBe(expectedPattern)
-  console.log('🚀 ~ expectedPattern:', expectedPattern)
 }

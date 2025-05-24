@@ -142,7 +142,7 @@ export const VUE_EXAMPLES: Example[] = [
     }),
     matched: ['变量插在中间{v1}变量的后面', '有一行中文', '{v2}第二段文字'],
     result: compiledVueBreakDivTemplate({
-      text: `{{ $t('<%= keys[0] %>', { v1 }) }}\n{{ $t('<%= keys[0] %>') }}\n{{ $t('<%= keys[0] %>', { v2 }) }}`,
+      text: `{{ $t('<%= keys[0] %>', { v1 }) }}\n{{ $t('<%= keys[1] %>') }}\n{{ $t('<%= keys[2] %>', { v2 }) }}`,
     }),
     language: 'zh-cn',
   },
@@ -283,9 +283,9 @@ export const VUE_EXAMPLES: Example[] = [
     content: compiledVueScriptDataTemplate({
       text: '`ES6模板${this.flag ? "中文" : "英文"}ES6模板`',
     }),
-    matched: ['ES6模板{value0}ES6模板', '中文', '英文'],
+    matched: ['中文', '英文', 'ES6模板{value0}ES6模板'],
     result: compiledVueScriptDataTemplate({
-      text: `this.$t('<%= keys[0] %>', { value0: this.flag ? this.$t('<%= keys[1] %>') : this.$t('<%= keys[2] %>') })`,
+      text: `this.$t('<%= keys[2] %>', { value0: this.flag ? this.$t('<%= keys[0] %>') : this.$t('<%= keys[1] %>') })`,
     }),
     language: 'zh-cn',
   },
@@ -349,9 +349,9 @@ export const VUE_EXAMPLES: Example[] = [
     content: compiledVueSetupDataTemplate({
       text: '`ES6模板${flag ? "中文" : "英文"}ES6模板`',
     }),
-    matched: ['ES6模板{value0}ES6模板', '中文', '英文'],
+    matched: ['中文', '英文', 'ES6模板{value0}ES6模板'],
     result: compiledVueSetupDataTemplate({
-      text: `i18n.$t('<%= keys[0] %>', { value0: flag ? i18n.$t('<%= keys[1] %>') : i18n.$t('<%= keys[2] %>') })`,
+      text: `i18n.$t('<%= keys[2] %>', { value0: flag ? i18n.$t('<%= keys[0] %>') : i18n.$t('<%= keys[1] %>') })`,
     }),
     language: 'zh-cn',
   },

@@ -128,9 +128,9 @@ export const REACT_EXAMPLES: Example[] = [
     content: compiledReactBreakDivTemplate({
       text: '变量插在中间{v1}变量的后面\n有一行中文\n{v2}第二段文字',
     }),
-    matched: ['变量插在中间{v1}变量的后面', '有一行中文', '{v2}第二段文字'],
+    matched: ['变量插在中间{{v1}}变量的后面', '有一行中文', '{{v2}}第二段文字'],
     result: compiledReactBreakDivTemplate({
-      text: `{t('<%= keys[0] %>', { v1 })}\n{t('<%= keys[0] %>')}\n{t('<%= keys[0] %>', { v2 })}`,
+      text: `{t('<%= keys[0] %>', { v1 })}\n{t('<%= keys[1] %>')}\n{t('<%= keys[2] %>', { v2 })}`,
     }),
     language: 'zh-cn',
   },
@@ -271,9 +271,9 @@ export const REACT_EXAMPLES: Example[] = [
     content: compiledReactScriptDataTemplate({
       text: '`ES6模板${flag ? "中文" : "英文"}ES6模板`',
     }),
-    matched: ['ES6模板{{value0}}ES6模板', '中文', '英文'],
+    matched: ['中文', '英文', 'ES6模板{{value0}}ES6模板'],
     result: compiledReactScriptDataTemplate({
-      text: `t('<%= keys[0] %>', { value0: flag ? t('<%= keys[1] %>') : t('<%= keys[2] %>') })`,
+      text: `t('<%= keys[2] %>', { value0: flag ? t('<%= keys[0] %>') : t('<%= keys[1] %>') })`,
     }),
     language: 'zh-cn',
   },

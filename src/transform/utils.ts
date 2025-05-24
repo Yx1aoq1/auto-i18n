@@ -203,15 +203,16 @@ export function pickI18n(template: string) {
           matched.keyword === '{') ||
         (keyword === '}}' && matched.keyword === '{{')
       ) {
-        const isSimple = vname.test(matchText.trim())
-        const name = isSimple ? matchText : `value${idx++}`
-        const value = isSimple ? null : matchText.trim()
+        const trimText = matchText.trim()
+        const isSimple = vname.test(trimText)
+        const name = isSimple ? trimText : `value${idx++}`
+        const expression = isSimple ? null : trimText
         params.push({
           name,
-          expression: value,
+          expression,
           start: originStart,
           end: originEnd,
-          tokens: isSimple ? [] : pickI18n(value as string),
+          tokens: isSimple ? [] : pickI18n(expression as string),
           origin: originText,
         })
       }
@@ -225,6 +226,7 @@ export function pickI18n(template: string) {
     }
     if (['\r\n', '\n', '\r'].includes(keyword)) {
       mergeTokens()
+      mergedIdx = tokens.length - 1
       // 清空原来params里的内容
       params = []
     }
