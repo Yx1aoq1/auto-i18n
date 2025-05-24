@@ -98,7 +98,7 @@ export const VUE_EXAMPLES: Example[] = [
     content: compiledVueDivTemplate({
       text: '变量插在中间 {{ value }} 变量的后面',
     }),
-    matched: ['变量插在中间 { value } 变量的后面'],
+    matched: ['变量插在中间 {value} 变量的后面'],
     result: compiledVueDivTemplate({
       text: `{{ $t('<%= keys[0] %>', { value }) }}`,
     }),
