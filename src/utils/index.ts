@@ -5,6 +5,7 @@ export * from './pathMatcher'
 export * from './changeCase'
 export * from './flat'
 export * from './str'
+export * from './is'
 
 /**
  * Make a map and return a function for checking if a key

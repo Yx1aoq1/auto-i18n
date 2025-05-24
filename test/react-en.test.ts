@@ -11,9 +11,9 @@ jest.mock('@/plugins/Config', () => {
       ignoreFiles: [],
       includeSubfolders: false,
       keyStyle: 'flat',
-      expressionTmp: '{expression}',
+      expressionTmp: '{{expression}}',
       caseStyle: 'default',
-      i18nFuncTemp: 'i18n.$t({key})',
+      i18nFuncTemp: 'i18n.t({key})',
     },
   }
 })
@@ -22,10 +22,10 @@ import * as cli from '../src/cli'
 import mock from 'mock-fs'
 import iconv from 'iconv-lite'
 import path from 'path'
-import { VUE_EXAMPLES } from './constants'
+import { REACT_EXAMPLES } from './constants'
 import { FileInterceptor, assertI18nReplacement } from './utils'
 
-const examples = VUE_EXAMPLES.filter((example) => {
+const examples = REACT_EXAMPLES.filter((example) => {
   return example.language === lang
 })
 
@@ -34,19 +34,18 @@ beforeAll(() => {
   iconv.encodingExists('utf8')
 })
 
-describe('Vue英文用例测试', () => {
+describe('React中文用例测试', () => {
   let idx = 0
   const fileInterceptor = new FileInterceptor()
 
   beforeEach(() => {
     // 设置文件拦截器
     fileInterceptor.setupFileInterceptor()
-
     const example = examples[idx]
     // 使用mock-fs模拟文件系统
     mock({
       [`example/locales/${lang}.json`]: JSON.stringify({}),
-      [`example-${idx}.vue`]: example.content,
+      [`example-${idx}.tsx`]: example.content,
       node_modules: mock.load(path.resolve(__dirname, '../node_modules')),
     })
   })
@@ -56,12 +55,12 @@ describe('Vue英文用例测试', () => {
     // 清理模拟的文件系统
     mock.restore()
     // 清理文件拦截器
-    fileInterceptor.cleanupFileInterceptor() // 恢复原始配置缓存
+    fileInterceptor.cleanupFileInterceptor()
   })
 
   examples.map((example) => {
     it(example.describe, async () => {
-      const filepath = `example-${idx}.vue`
+      const filepath = `example-${idx}.tsx`
       const localeFilePath = `example/locales/${lang}.json`
       await cli.run(['node', 'auto-i18n', 'replace', filepath])
       const localeObj = JSON.parse(

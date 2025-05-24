@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { trimEnd } from 'lodash'
 import { KeyStyle, VueExtType } from '@/types'
-import { CaseStyles } from '@/utils'
+import { CaseStyles, isValidKeyStyle, normalizeLocale } from '@/utils'
 import { MatchToken } from '@/transform'
 
 interface I18nFuncParams {
@@ -43,9 +43,14 @@ export class Config {
     return config[key] as T | undefined
   }
 
-  // 默认匹配识别的语言
+  // 源语言
   static get sourceLanguage(): string {
-    return this.getConfig<string>('sourceLanguage') || SourceLangKey.ZH
+    return this.getConfig<string>('sourceLanguage') ?? SourceLangKey.ZH
+  }
+
+  // 默认匹配识别的语言
+  static get matchedLanguage(): string {
+    return normalizeLocale(this.sourceLanguage)
   }
 
   // 读取locales配置时对应的拓展名
@@ -89,9 +94,9 @@ export class Config {
 
   // 导出格式 Can be flat({"a.b.c": "..."}) or nested({"a": {"b": {"c": "..."}}})
   static get keyStyle(): KeyStyle {
-    const style = this.getConfig<KeyStyle>('keystyle') || 'auto'
-    if (style === 'auto') return 'flat'
-    return style
+    const style = this.getConfig<KeyStyle>('keystyle') ?? 'auto'
+    if (isValidKeyStyle(style)) return style
+    return 'flat'
   }
 
   // 参数模板格式，expression 表示中间要替换的参数名称，例如： {{expression}} / ${expression}

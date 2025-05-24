@@ -10,6 +10,8 @@ export class Global {
 
   static sourceLanguage = Config.sourceLanguage
 
+  static matchedLanguage = Config.matchedLanguage
+
   static enabledParsers = AvailableParsers.filter((i) =>
     (Config.enabledParsers || ['js', 'ts', 'json']).includes(i.id)
   )

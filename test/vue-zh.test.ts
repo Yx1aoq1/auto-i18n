@@ -4,6 +4,7 @@ jest.mock('@/plugins/Config', () => {
   return {
     Config: {
       sourceLanguage: lang,
+      matchedLanguage: lang,
       localesPaths: ['example/locales'],
       namespace: false,
       pathMatcher: '{locale}.{ext}',
