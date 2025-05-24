@@ -286,8 +286,8 @@ export const REACT_EXAMPLES: Example[] = [
   },
   {
     describe: '测试英文+变量',
-    content: compiledReactDivTemplate({ text: 'Test English {{ value }}' }),
-    matched: ['Test English {value}'],
+    content: compiledReactDivTemplate({ text: 'Test English {value}' }),
+    matched: ['Test English {{value}}'],
     result: compiledReactDivTemplate({
       text: `{t('<%= keys[0] %>', { value })}`,
     }),
@@ -314,7 +314,7 @@ export const REACT_EXAMPLES: Example[] = [
   {
     describe: '变量插在中间',
     content: compiledReactDivTemplate({
-      text: 'Hello, { value } Goodbye',
+      text: 'Hello, {value} Goodbye',
     }),
     matched: ['Hello, {{value}} Goodbye'],
     result: compiledReactDivTemplate({
@@ -334,11 +334,11 @@ export const REACT_EXAMPLES: Example[] = [
   {
     describe: '变量换行后的英文',
     content: compiledReactBreakDivTemplate({
-      text: '{{ value }}\nTest English',
+      text: '{value}\nTest English',
     }),
     matched: ['Test English'],
     result: compiledReactBreakDivTemplate({
-      text: `{t('<%= keys[0] %>')}`,
+      text: `{value}\n{t('<%= keys[0] %>')}`,
     }),
     language: 'en',
   },
@@ -356,12 +356,12 @@ export const REACT_EXAMPLES: Example[] = [
   {
     describe: '复杂换行情况',
     content: compiledReactBreakDivTemplate({
-      text: 'My name is {{ v1 }} heihei\nYou are welcome\n{{ v2 }} test third line',
+      text: 'My name is {v1} heihei\nYou are welcome\n{v2} test third line',
     }),
     matched: [
-      'My name is {v1} heihei',
+      'My name is {{v1}} heihei',
       'You are welcome',
-      '{v2} test third line',
+      '{{v2}} test third line',
     ],
     result: compiledReactBreakDivTemplate({
       text: `{t('<%= keys[0] %>', { v1 })}\n{t('<%= keys[1] %>')}\n{t('<%= keys[2] %>', { v2 })}`,

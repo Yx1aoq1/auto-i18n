@@ -34,7 +34,7 @@ beforeAll(() => {
   iconv.encodingExists('utf8')
 })
 
-describe('React中文用例测试', () => {
+describe('React英文用例测试', () => {
   let idx = 0
   const fileInterceptor = new FileInterceptor()
 

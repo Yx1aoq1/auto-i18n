@@ -531,7 +531,7 @@ export const VUE_EXAMPLES: Example[] = [
     result: compiledVueScriptDataTemplate({
       text: `this.$t('<%= keys[0] %>')`,
     }),
-    language: 'zh-cn',
+    language: 'en',
   },
   {
     describe: 'Vue Script 对象英文',
@@ -648,7 +648,7 @@ export const VUE_EXAMPLES: Example[] = [
     content: compiledVueSetupDataTemplate({
       text: '`Hello ${flag ? "English" : "Chinese"} Hello`',
     }),
-    matched: ['English', 'Chinese', 'Hello {value0}'],
+    matched: ['English', 'Chinese', 'Hello {value0} Hello'],
     result: compiledVueSetupDataTemplate({
       text: `i18n.$t('<%= keys[2] %>', { value0: flag ? i18n.$t('<%= keys[0] %>') : i18n.$t('<%= keys[1] %>') })`,
     }),

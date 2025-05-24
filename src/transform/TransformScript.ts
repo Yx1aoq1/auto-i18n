@@ -67,6 +67,19 @@ export function TransformScript(
     StringLiteral(path: NodePath<t.StringLiteral>) {
       if (!path.node.start || !path.node.end) return
       if (isNodeResolved(path)) return
+
+      // 排除import语句中的模块路径
+      if (
+        path.parent &&
+        (t.isImportDeclaration(path.parent) ||
+          (t.isCallExpression(path.parent) &&
+            path.parent.callee &&
+            t.isIdentifier(path.parent.callee) &&
+            path.parent.callee.name === 'require'))
+      ) {
+        return
+      }
+
       if (isMatchLang(path.node.value)) {
         // Check if this string is part of a JSX attribute
         const isJSXAttribute =

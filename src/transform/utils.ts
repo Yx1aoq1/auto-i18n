@@ -85,7 +85,7 @@ interface KeywordStackItem {
   pos: number
 }
 
-export function pickI18n(template: string) {
+export function pickI18n(template: string, isExpr = false) {
   const scanner = new Scanner(template)
   // 返回结果
   const tokens: MatchToken[] = []
@@ -111,6 +111,7 @@ export function pickI18n(template: string) {
   words = scanner.scanUtil(KEYWORD)
   // 没有查询到任何关键字或者关键字前包含中文，都按全段文字为中文处理
   if (
+    !isExpr &&
     isMatchLang(words) &&
     (!scanner.keyword || !['{{', '{'].includes(scanner.keyword))
   ) {
@@ -144,14 +145,22 @@ export function pickI18n(template: string) {
       words = scanner.scanUtil(KEYWORD)
       continue
     }
-    if (['${', '{', '{{'].includes(keyword)) {
-      isExp = true
+    if (
+      !isExp &&
+      isMatchLang(words) &&
+      keywordStack.every((item) => item.keyword !== '`') &&
+      !["'", '"', '`'].includes(keyword)
+    ) {
+      matchLang(words, pos - words.length)
     }
     if (
       ['}', '}}'].includes(keyword) &&
       keywordStack.every((item) => !['${', '{', '{{'].includes(item.keyword))
     ) {
       isExp = false
+    }
+    if (['${', '{', '{{'].includes(keyword)) {
+      isExp = true
     }
     if (matched) {
       const matchStart = matched.pos + matched.keyword.length
@@ -211,17 +220,10 @@ export function pickI18n(template: string) {
           expression,
           start: originStart,
           end: originEnd,
-          tokens: isSimple ? [] : pickI18n(expression as string),
+          tokens: isSimple ? [] : pickI18n(expression as string, true),
           origin: originText,
         })
       }
-    }
-    if (
-      isMatchLang(words) &&
-      keywordStack.every((item) => item.keyword !== '`') &&
-      !["'", '"', '`'].includes(keyword)
-    ) {
-      matchLang(words, pos - words.length)
     }
     if (['\r\n', '\n', '\r'].includes(keyword)) {
       mergeTokens()
