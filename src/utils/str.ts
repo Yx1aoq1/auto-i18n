@@ -1,10 +1,18 @@
 import { SourceLangKey } from '@/constants'
-
+import crypto from 'crypto'
 /**
  * 随机字符串
  */
 export function getRandomStr() {
   return Math.random().toString(36).slice(2)
+}
+
+export function getHash(text: string, length = 6) {
+  return crypto
+    .createHash('md5')
+    .update(text, 'utf8')
+    .digest('hex')
+    .slice(0, length)
 }
 
 /**

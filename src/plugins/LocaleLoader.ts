@@ -12,7 +12,7 @@ import {
   assign,
 } from 'lodash'
 import { Global, File } from '.'
-import { flatten, unflatten, getRandomStr } from '@/utils'
+import { flatten, unflatten, getHash } from '@/utils'
 import { LocaleData, ParsedFile } from '@/types'
 import { CONFIG_FILE_NAME } from '@/constants'
 
@@ -220,7 +220,7 @@ export class LocaleLoader {
     if (filepath && this._files[filepath]) {
       original = this._files[filepath].value as LocaleData
     }
-    let modified = cloneDeep(original)
+    const modified = cloneDeep(original)
     modified[key] = text
     // 已存在文件时，更新文件内容
     if (filepath && this._files[filepath]) {
@@ -300,8 +300,8 @@ export class LocaleLoader {
     // TODO: 对接一个翻译API
     // if (Global.generateLocaleKey === 'translate') {
     // }
-    // 生成一个随机 key
-    return `trans_${getRandomStr()}`
+    // 根据文案生成一个hash作为key
+    return `msg_${getHash(text)}`
   }
 
   /**
