@@ -1,7 +1,7 @@
 {
-  "name": "my-cli-tool",
+  "name": "auto-i18n-tools",
   "version": "1.0.0",
-  "description": "A CLI tool created with Commander.js",
+  "description": "A CLI tool to create i18n",
   "main": "dist/index.js",
   "bin": {
     "auto-i18n": "./bin/index.js"
