@@ -2,8 +2,13 @@ import { CONFIG_FILE_NAME, SourceLangKey } from '@/constants'
 import fs from 'fs'
 import path from 'path'
 import { trimEnd } from 'lodash'
-import { KeyStyle, VueExtType } from '@/types'
-import { CaseStyles, isValidKeyStyle, normalizeLocale } from '@/utils'
+import { ExprFormat, KeyStyle, VueExtType } from '@/types'
+import {
+  CaseStyles,
+  isValidExprFormat,
+  isValidKeyStyle,
+  normalizeLocale,
+} from '@/utils'
 import { MatchToken } from '@/transform'
 
 interface I18nFuncParams {
@@ -98,10 +103,24 @@ export class Config {
     if (isValidKeyStyle(style)) return style
     return 'flat'
   }
+  // 参数模板格式，braces 表示 {expression} / doubleBraces 表示 {{expression}} / dollarBraces 表示 ${expression}
+  // 也可以传入一个函数，根据参数名称和索引生成模板，例如：(name, idx) => `{${name}${idx}}`
+  static get exprFormat() {
+    const format =
+      this.getConfig<ExprFormat | ((name: string, idx: number) => string)>(
+        'exprFormat'
+      ) ?? 'braces'
 
-  // 参数模板格式，expression 表示中间要替换的参数名称，例如： {{expression}} / ${expression}
-  static get expressionTmp() {
-    return this.getConfig<string>('expressionTmp') ?? '{expression}'
+    if (typeof format === 'function' || isValidExprFormat(format)) {
+      return format
+    }
+
+    return 'braces'
+  }
+
+  // 参数是否以数组的形式传入
+  static get useArrayExpr(): boolean {
+    return this.getConfig<boolean>('useArrayExpr') ?? false
   }
 
   // 命名空间风格，如大写驼峰/小写驼峰等，会自动转换

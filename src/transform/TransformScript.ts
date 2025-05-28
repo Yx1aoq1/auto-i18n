@@ -28,6 +28,40 @@ function parseToAST(code: string, type: string) {
   })
 }
 
+/**
+ * 向代码顶部插入 import i18n from '@/i18n'
+ * @param {string} code - 原始 JS/TS 代码
+ * @returns {string} 修改后的代码
+ */
+function insertI18nImport(code: string, importStr: string, type: string) {
+  const ast = parseToAST(code, type)
+
+  const importAst = parseToAST(importStr, type)
+
+  const importNode = importAst.program.body[0]
+  if (!t.isImportDeclaration(importNode)) {
+    throw new Error('Provided importStr is not a valid import declaration')
+  }
+
+  // 检查是否已存在
+  let hasImport = false
+
+  traverse(ast, {
+    ImportDeclaration(path) {
+      if (path.node.source.value === importNode.source.value) {
+        hasImport = true
+        path.stop() // 发现就不继续了
+      }
+    },
+  })
+
+  if (!hasImport) {
+    ast.program.body.unshift(importNode)
+  }
+
+  return generate(ast, {}, code).code
+}
+
 export function TransformScript(
   code: string | undefined,
   type: string,
@@ -211,6 +245,12 @@ export function TransformScript(
   })
 
   const newCode = replaceI18n(code, tokens, (t, o) => replace(t, o, ext))
+
+  // const newCode = insertI18nImport(
+  //   replaceI18n(code, tokens, (t, o) => replace(t, o, ext)),
+  //   `import i18n from '@/i18n'`,
+  //   type
+  // )
 
   return {
     origin: code,

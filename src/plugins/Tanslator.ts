@@ -36,7 +36,7 @@ export class Translator {
       ext?: VueExtType
     ) => {
       const localeKey = this.localeLoader.findMatchLocaleKey(text, namespace)
-      const key = `'${localeKey}'${expression ? `, { ${expression} }` : ''}`
+      const key = `'${localeKey}'${expression ? `, ${Global.useArrayExpr ? `[ ${expression} ]` : `{ ${expression} }`}` : ''}`
 
       if (typeof Global.i18nFuncTemp === 'function') {
         return Global.i18nFuncTemp({
@@ -85,6 +85,9 @@ export class Translator {
         expression = params
           .map((item) => {
             const name = item.name.trim()
+            if (Global.useArrayExpr) {
+              return item.value ?? name
+            }
             if (!item.value) return name
             // 如果是复杂表达式，直接使用原始表达式
             return `${name}: ${item.value}`

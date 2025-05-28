@@ -261,9 +261,9 @@ export const VUE_EXAMPLES: Example[] = [
     content: compiledVueScriptDataTemplate({
       text: '`ES6模板${this.value}ES6模板`',
     }),
-    matched: ['ES6模板{value0}ES6模板'],
+    matched: ['ES6模板{value}ES6模板'],
     result: compiledVueScriptDataTemplate({
-      text: `this.$t('<%= keys[0] %>', { value0: this.value })`,
+      text: `this.$t('<%= keys[0] %>', { value: this.value })`,
     }),
     language: 'zh-cn',
   },
@@ -283,9 +283,9 @@ export const VUE_EXAMPLES: Example[] = [
     content: compiledVueScriptDataTemplate({
       text: '`ES6模板${this.flag ? "中文" : "英文"}ES6模板`',
     }),
-    matched: ['中文', '英文', 'ES6模板{value0}ES6模板'],
+    matched: ['中文', '英文', 'ES6模板{value}ES6模板'],
     result: compiledVueScriptDataTemplate({
-      text: `this.$t('<%= keys[2] %>', { value0: this.flag ? this.$t('<%= keys[0] %>') : this.$t('<%= keys[1] %>') })`,
+      text: `this.$t('<%= keys[2] %>', { value: this.flag ? this.$t('<%= keys[0] %>') : this.$t('<%= keys[1] %>') })`,
     }),
     language: 'zh-cn',
   },
@@ -349,9 +349,9 @@ export const VUE_EXAMPLES: Example[] = [
     content: compiledVueSetupDataTemplate({
       text: '`ES6模板${flag ? "中文" : "英文"}ES6模板`',
     }),
-    matched: ['中文', '英文', 'ES6模板{value0}ES6模板'],
+    matched: ['中文', '英文', 'ES6模板{value}ES6模板'],
     result: compiledVueSetupDataTemplate({
-      text: `i18n.$t('<%= keys[2] %>', { value0: flag ? i18n.$t('<%= keys[0] %>') : i18n.$t('<%= keys[1] %>') })`,
+      text: `i18n.$t('<%= keys[2] %>', { value: flag ? i18n.$t('<%= keys[0] %>') : i18n.$t('<%= keys[1] %>') })`,
     }),
     language: 'zh-cn',
   },
@@ -560,9 +560,9 @@ export const VUE_EXAMPLES: Example[] = [
     content: compiledVueScriptDataTemplate({
       text: '`Hello ${this.value} abc`',
     }),
-    matched: ['Hello {value0} abc'],
+    matched: ['Hello {value} abc'],
     result: compiledVueScriptDataTemplate({
-      text: `this.$t('<%= keys[0] %>', { value0: this.value })`,
+      text: `this.$t('<%= keys[0] %>', { value: this.value })`,
     }),
     language: 'en',
   },
@@ -582,9 +582,9 @@ export const VUE_EXAMPLES: Example[] = [
     content: compiledVueScriptDataTemplate({
       text: '`Hello ${this.flag ? "English" : "Chinese"}`',
     }),
-    matched: ['English', 'Chinese', 'Hello {value0}'],
+    matched: ['English', 'Chinese', 'Hello {value}'],
     result: compiledVueScriptDataTemplate({
-      text: `this.$t('<%= keys[2] %>', { value0: this.flag ? this.$t('<%= keys[0] %>') : this.$t('<%= keys[1] %>') })`,
+      text: `this.$t('<%= keys[2] %>', { value: this.flag ? this.$t('<%= keys[0] %>') : this.$t('<%= keys[1] %>') })`,
     }),
     language: 'en',
   },
@@ -648,9 +648,9 @@ export const VUE_EXAMPLES: Example[] = [
     content: compiledVueSetupDataTemplate({
       text: '`Hello ${flag ? "English" : "Chinese"} Hello`',
     }),
-    matched: ['English', 'Chinese', 'Hello {value0} Hello'],
+    matched: ['English', 'Chinese', 'Hello {value} Hello'],
     result: compiledVueSetupDataTemplate({
-      text: `i18n.$t('<%= keys[2] %>', { value0: flag ? i18n.$t('<%= keys[0] %>') : i18n.$t('<%= keys[1] %>') })`,
+      text: `i18n.$t('<%= keys[2] %>', { value: flag ? i18n.$t('<%= keys[0] %>') : i18n.$t('<%= keys[1] %>') })`,
     }),
     language: 'en',
   },

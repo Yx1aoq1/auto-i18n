@@ -12,6 +12,8 @@ export const SourceLangKey = {
   RU: 'ru',
 } as const
 
+export const EXPR_FORMATS = ['braces', 'doubleBraces', 'dollarBraces'] as const
+
 export const REGEX_MAP = {
   [SourceLangKey.ZH]: /[\u4e00-\u9fff]/,
   [SourceLangKey.EN]: /[a-zA-Z]/,

@@ -45,7 +45,9 @@ export class Global {
 
   static keyStyle = Config.keyStyle
 
-  static expressionTmp = Config.expressionTmp
+  static exprFormat = Config.exprFormat
+
+  static useArrayExpr = Config.useArrayExpr
 
   static caseStyle = Config.caseStyle
 

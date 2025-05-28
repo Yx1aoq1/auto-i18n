@@ -190,7 +190,7 @@ export function pickI18n(template: string, isExpr = false) {
               start: p.start - matchStart,
               end: p.end - matchStart,
             })),
-            (item) => getExpression(item.name)
+            (item, o, idx) => getExpression(item.name, idx)
           )
           tokens.push({
             type: 'template',
@@ -213,8 +213,9 @@ export function pickI18n(template: string, isExpr = false) {
       ) {
         const trimText = matchText.trim()
         const isSimple = vname.test(trimText)
-        const name = isSimple ? trimText : `value${idx++}`
+        const name = isSimple ? trimText : 'value' + (idx === 0 ? '' : idx)
         const expression = isSimple ? null : trimText
+        idx++
         params.push({
           name,
           expression,
@@ -313,7 +314,7 @@ export function pickI18n(template: string, isExpr = false) {
         start: p.start - mergedStart,
         end: p.end - mergedStart,
       })),
-      (item) => getExpression(item.name)
+      (item, o, idx) => getExpression(item.name, idx)
     )
     // 删除原来tokens中的内容
     tokens.splice(mergedIdx + 1, tokens.length)
@@ -330,26 +331,36 @@ export function pickI18n(template: string, isExpr = false) {
   }
 
   // 获取参数模板格式
-  function getExpression(name: string) {
-    return Global.expressionTmp.replace('expression', name)
+  function getExpression(name: string, idx: number) {
+    if (typeof Global.exprFormat === 'function') {
+      return Global.exprFormat(name, idx)
+    }
+    switch (Global.exprFormat) {
+      case 'braces':
+        return `{${name}}`
+      case 'doubleBraces':
+        return `{{${name}}}`
+      case 'dollarBraces':
+        return '${' + name + '}'
+    }
   }
 }
 
 export function replaceI18n<K extends { start: number; end: number }>(
   origin: string,
   tokens: K[],
-  callback: (item: K, origin: string) => string
+  callback: (item: K, origin: string, idx: number) => string
 ) {
   let code = origin
   let offset = 0
   // logger.debug('origin code:', origin)
-  tokens.forEach((token) => {
+  tokens.forEach((token, idx) => {
     const originText = origin.slice(token.start, token.end + 1)
     code = replace(
       code,
       token.start + offset,
       token.end + offset,
-      callback(token, originText)
+      callback(token, originText, idx)
     )
     offset = code.length - origin.length
   })

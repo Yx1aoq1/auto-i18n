@@ -271,9 +271,9 @@ export const REACT_EXAMPLES: Example[] = [
     content: compiledReactScriptDataTemplate({
       text: '`ES6模板${flag ? "中文" : "英文"}ES6模板`',
     }),
-    matched: ['中文', '英文', 'ES6模板{{value0}}ES6模板'],
+    matched: ['中文', '英文', 'ES6模板{{value}}ES6模板'],
     result: compiledReactScriptDataTemplate({
-      text: `t('<%= keys[2] %>', { value0: flag ? t('<%= keys[0] %>') : t('<%= keys[1] %>') })`,
+      text: `t('<%= keys[2] %>', { value: flag ? t('<%= keys[0] %>') : t('<%= keys[1] %>') })`,
     }),
     language: 'zh-cn',
   },
@@ -505,9 +505,9 @@ export const REACT_EXAMPLES: Example[] = [
     content: compiledReactScriptDataTemplate({
       text: '`Hello ${flag ? "English" : "Chinese"}`',
     }),
-    matched: ['English', 'Chinese', 'Hello {{value0}}'],
+    matched: ['English', 'Chinese', 'Hello {{value}}'],
     result: compiledReactScriptDataTemplate({
-      text: `t('<%= keys[2] %>', { value0: flag ? t('<%= keys[0] %>') : t('<%= keys[1] %>') })`,
+      text: `t('<%= keys[2] %>', { value: flag ? t('<%= keys[0] %>') : t('<%= keys[1] %>') })`,
     }),
     language: 'en',
   },
