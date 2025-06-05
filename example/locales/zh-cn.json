@@ -1,1 +1,15 @@
-{}
+{
+  "error": {
+    "networkError": "网络有问题，请检查网络后重试",
+    "unknownError": "抱歉，发生了一个未知错误，请重试"
+  },
+  "common": {
+    "username": "用户名",
+    "password": "密码",
+    "login": "登录",
+    "register": "注册",
+    "logout": "退出",
+    "profile": "个人中心",
+    "settings": "设置"
+  }
+}

@@ -12,6 +12,8 @@ export type VueExtType = (typeof VUE_TYPES)[number]
 
 export type SourceLang = (typeof SourceLangKey)[keyof typeof SourceLangKey]
 
+export type MatchLang = Exclude<SourceLang, 'en'>
+
 export type ExprFormat = (typeof EXPR_FORMATS)[number]
 
 export interface FileInfo {

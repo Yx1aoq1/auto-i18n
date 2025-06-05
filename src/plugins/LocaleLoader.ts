@@ -33,8 +33,10 @@ export class LocaleLoader {
     )
   }
 
-  get namespaces() {
-    return [...Array.from(this._namespaces)].filter((item) => !!item)
+  get namespaces(): string[] {
+    return [...Array.from(this._namespaces)].filter(
+      (item) => item !== undefined
+    )
   }
 
   get files() {
@@ -327,16 +329,19 @@ export class LocaleLoader {
   }: {
     locale: string
     namespace?: string
-    keypath: string
+    keypath?: string
   }) {
-    const localeDatas = this._flattenLocaleData[locale]
+    const localeData = this._flattenLocaleData[locale]
     if (namespace) {
       if (keypath) {
-        return get(localeDatas[namespace], keypath, '')
+        return get(localeData[namespace], keypath, '')
       }
-      return localeDatas[namespace] || {}
+      return localeData[namespace] ?? {}
     }
-    return get(localeDatas, keypath, '')
+    if (keypath) {
+      return get(localeData, keypath, '')
+    }
+    return localeData
   }
 
   /**

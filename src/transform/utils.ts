@@ -1,6 +1,6 @@
 import { REGEX_MAP } from '@/constants'
 import { Scanner, Global } from '@/plugins'
-import { isValidSourceLang, replace } from '@/utils'
+import { isValidMatchLang, replace } from '@/utils'
 
 const vname = /^[a-zA-Z\$_][a-zA-Z\d_]*$/
 
@@ -37,7 +37,7 @@ const MATCH_KEYWORD = {
 }
 
 export function isMatchLang(text: string) {
-  if (!isValidSourceLang(Global.matchedLanguage)) {
+  if (!isValidMatchLang(Global.matchedLanguage)) {
     throw new Error(`暂不支持 ${Global.matchedLanguage} 语言的替换`)
   }
   return REGEX_MAP[Global.matchedLanguage].test(text)

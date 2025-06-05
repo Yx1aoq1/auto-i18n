@@ -1,1 +1,15 @@
-{}
+{
+  "error": {
+    "networkError": "Network error. Check your connection and try again.",
+    "unknownError": "Sorry, an unknown error occurred. Please try again."
+  },
+  "common": {
+    "username": "Username",
+    "password": "Password",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "profile": "Profile",
+    "settings": "Settings"
+  }
+}

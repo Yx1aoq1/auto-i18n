@@ -1,8 +1,10 @@
 import { EXPR_FORMATS, KEY_STYLE, SourceLangKey } from '@/constants'
-import { ExprFormat, KeyStyle, SourceLang } from '@/types'
+import { ExprFormat, KeyStyle, MatchLang } from '@/types'
 
-export function isValidSourceLang(lang: string): lang is SourceLang {
-  return Object.values(SourceLangKey).includes(lang as SourceLang)
+export function isValidMatchLang(lang: string): lang is MatchLang {
+  return Object.values(SourceLangKey)
+    .filter((key) => key !== SourceLangKey.EN)
+    .includes(lang as MatchLang)
 }
 
 export function isValidKeyStyle(style: string): style is KeyStyle {

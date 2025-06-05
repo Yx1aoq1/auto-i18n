@@ -9,7 +9,7 @@
   "scripts": {
     "start": "nodemon --watch src --exec npm run command",
     "build": "tsc && tsc-alias",
-    "command": "ts-node  -r tsconfig-paths/register --files ./src/index.ts pick example/vue -d",
+    "command": "ts-node  -r tsconfig-paths/register --files ./src/index.ts toexcel",
     "test": "jest --config jest.config.js",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
@@ -29,7 +29,8 @@
     "fs-extra": "^11.3.0",
     "iconv-lite": "^0.6.3",
     "lodash": "^4.17.21",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
