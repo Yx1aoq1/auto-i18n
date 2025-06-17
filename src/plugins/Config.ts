@@ -22,13 +22,15 @@ interface I18nFuncParams {
 const cwd = process.cwd()
 
 export class Config {
-  // 私有缓存变量
-  static #configCache: Record<string, unknown> | null = null
+  // 实例缓存变量
+  private configCache: Record<string, unknown>
 
-  // 私有加载方法，只加载一次
-  private static loadConfig(): Record<string, unknown> {
-    if (this.#configCache) return this.#configCache
+  constructor() {
+    this.configCache = this.loadConfig()
+  }
 
+  // 加载配置文件
+  private loadConfig(): Record<string, unknown> {
     const configPath = path.join(cwd, CONFIG_FILE_NAME)
     if (!fs.existsSync(configPath)) {
       logger.error(
@@ -38,28 +40,25 @@ export class Config {
     }
 
     delete require.cache[require.resolve(configPath)]
-    this.#configCache = require(configPath)
-
-    return this.#configCache as Record<string, unknown>
+    return require(configPath)
   }
 
-  private static getConfig<T = unknown>(key: string): T | undefined {
-    const config = this.loadConfig()
-    return config[key] as T | undefined
+  private getConfig<T = unknown>(key: string): T | undefined {
+    return this.configCache[key] as T | undefined
   }
 
   // 源语言
-  static get sourceLanguage(): string {
+  get sourceLanguage(): string {
     return this.getConfig<string>('sourceLanguage') ?? SourceLangKey.ZH
   }
 
   // 默认匹配识别的语言
-  static get matchedLanguage(): string {
+  get matchedLanguage(): string {
     return normalizeLocale(this.sourceLanguage)
   }
 
   // 读取locales配置时对应的拓展名
-  static get enabledParsers(): string[] | undefined {
+  get enabledParsers(): string[] | undefined {
     let ids = this.getConfig<string | string[]>('enabledParsers')
     if (!ids || !ids.length) return undefined
     if (typeof ids === 'string') ids = [ids]
@@ -67,7 +66,7 @@ export class Config {
   }
 
   // locales配置的文件夹路径
-  static get localesPaths(): string[] | undefined {
+  get localesPaths(): string[] | undefined {
     const paths = this.getConfig<string | string[]>('localesPaths')
     let localesPaths: string[]
     if (!paths) return
@@ -78,34 +77,35 @@ export class Config {
   }
 
   // 是否有命名空间
-  static get namespace(): boolean | undefined {
+  get namespace(): boolean | undefined {
     return this.getConfig<boolean>('namespace')
   }
 
   // locales文件匹配
-  static get pathMatcher(): string | undefined {
+  get pathMatcher(): string | undefined {
     return this.getConfig('pathMatcher')
   }
 
   // i18n/locales目录忽略读取的文件夹
-  static get ignoreFiles() {
+  get ignoreFiles() {
     return this.getConfig<string[]>('ignoreFiles') ?? []
   }
 
   // 包含的文件夹层级
-  static get includeSubfolders(): boolean {
+  get includeSubfolders(): boolean {
     return this.getConfig<boolean>('includeSubfolders') || false
   }
 
   // 导出格式 Can be flat({"a.b.c": "..."}) or nested({"a": {"b": {"c": "..."}}})
-  static get keyStyle(): KeyStyle {
+  get keyStyle(): KeyStyle {
     const style = this.getConfig<KeyStyle>('keystyle') ?? 'auto'
     if (isValidKeyStyle(style)) return style
     return 'flat'
   }
+
   // 参数模板格式，braces 表示 {expression} / doubleBraces 表示 {{expression}} / dollarBraces 表示 ${expression}
   // 也可以传入一个函数，根据参数名称和索引生成模板，例如：(name, idx) => `{${name}${idx}}`
-  static get exprFormat() {
+  get exprFormat() {
     const format =
       this.getConfig<ExprFormat | ((name: string, idx: number) => string)>(
         'exprFormat'
@@ -119,17 +119,17 @@ export class Config {
   }
 
   // 参数是否以数组的形式传入
-  static get useArrayExpr(): boolean {
+  get useArrayExpr(): boolean {
     return this.getConfig<boolean>('useArrayExpr') ?? false
   }
 
   // 命名空间风格，如大写驼峰/小写驼峰等，会自动转换
-  static get caseStyle() {
+  get caseStyle() {
     return this.getConfig<CaseStyles>('caseStyle') ?? 'default'
   }
 
   // 国际化的i18n方法 如 i18n.t({key})
-  static get i18nFuncTemp() {
+  get i18nFuncTemp() {
     return (
       this.getConfig<string | ((opt: I18nFuncParams) => string)>(
         'i18nFuncTemp'
@@ -137,13 +137,11 @@ export class Config {
     )
   }
 
-  static set isDebugMode(value: boolean) {
-    if (this.#configCache) {
-      this.#configCache.isDebugMode = value
-    }
+  set isDebugMode(value: boolean) {
+    this.configCache.isDebugMode = value
   }
 
-  static get isDebugMode() {
+  get isDebugMode() {
     return this.getConfig<boolean>('isDebugMode') ?? false
   }
 }

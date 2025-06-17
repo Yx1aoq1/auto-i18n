@@ -1,30 +1,21 @@
-const lang = 'zh-cn'
-
-jest.mock('@/plugins/Config', () => {
-  return {
-    Config: {
-      sourceLanguage: lang,
-      matchedLanguage: lang,
-      localesPaths: ['example/locales'],
-      namespace: false,
-      pathMatcher: '{locale}.{ext}',
-      ignoreFiles: [],
-      includeSubfolders: false,
-      keyStyle: 'flat',
-      exprFormat: 'doubleBraces',
-      useArrayExpr: false,
-      caseStyle: 'default',
-      i18nFuncTemp: 'i18n.t({key})',
-    },
-  }
-})
-
+import { CONFIG_FILE_NAME } from '../src/constants'
 import * as cli from '../src/cli'
 import mock from 'mock-fs'
 import iconv from 'iconv-lite'
 import path from 'path'
 import { REACT_EXAMPLES } from './constants'
 import { FileInterceptor, assertI18nReplacement } from './utils'
+
+const lang = 'zh-cn'
+
+const defaultConfig = `module.exports = {
+  sourceLanguage: '${lang}',
+  localesPaths: ['example/locales'],
+  namespace: false,
+  pathMatcher: '{locale}.{ext}',
+  i18nFuncTemp: 'i18n.t({key})',
+  exprFormat: 'doubleBraces',
+}`
 
 const examples = REACT_EXAMPLES.filter((example) => {
   return example.language === lang
@@ -45,6 +36,7 @@ describe('React中文用例测试', () => {
     const example = examples[idx]
     // 使用mock-fs模拟文件系统
     mock({
+      [CONFIG_FILE_NAME]: defaultConfig,
       [`example/locales/${lang}.json`]: JSON.stringify({}),
       [`example-${idx}.tsx`]: example.content,
       node_modules: mock.load(path.resolve(__dirname, '../node_modules')),

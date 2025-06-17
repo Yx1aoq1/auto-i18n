@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { Command } from 'commander'
-import { Translator, Config } from '@/plugins'
+import { Global, Translator } from '@/plugins'
 
 export default (program: Command) => {
   program
@@ -17,7 +17,7 @@ export default (program: Command) => {
         process.exit()
       }
 
-      Config.isDebugMode = debug
+      Global.isDebugMode = debug
 
       const translator = await Translator.create()
 
