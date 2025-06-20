@@ -4,6 +4,15 @@ export const KEY_STYLE = ['flat', 'nested'] as const
 
 export const VUE_TYPES = ['vueTemplate', 'vueScript', 'vueSetup'] as const
 
+export const EXPR_FORMATS = ['braces', 'doubleBraces', 'dollarBraces'] as const
+
+export const TransformFileType = {
+  JS: 'js',
+  TS: 'ts',
+  JSON: 'json',
+  EXCEL: 'excel',
+} as const
+
 export const SourceLangKey = {
   ZH: 'zh-cn',
   EN: 'en',
@@ -11,8 +20,6 @@ export const SourceLangKey = {
   KO: 'ko',
   RU: 'ru',
 } as const
-
-export const EXPR_FORMATS = ['braces', 'doubleBraces', 'dollarBraces'] as const
 
 export const REGEX_MAP = {
   [SourceLangKey.ZH]: /[\u4e00-\u9fff]/,

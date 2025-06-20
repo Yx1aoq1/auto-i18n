@@ -1,7 +1,13 @@
 /**
  * 项目公共类型声明
  */
-import { KEY_STYLE, VUE_TYPES, SourceLangKey, EXPR_FORMATS } from '@/constants'
+import {
+  KEY_STYLE,
+  VUE_TYPES,
+  SourceLangKey,
+  EXPR_FORMATS,
+  TransformFileType,
+} from '@/constants'
 import { Command } from 'commander'
 
 export type CommandModule = (program: Command) => void
@@ -32,3 +38,6 @@ export type LocaleData = Record<string, NestedStringValue>
 export interface ParsedFile extends FileInfo {
   value: LocaleData
 }
+
+export type TransformFileTypes =
+  (typeof TransformFileType)[keyof typeof TransformFileType]
